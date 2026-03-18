@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>KevGolf</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+  :root{--green:#1a5c2a;--green-light:#2d8a45;--green-dark:#0e3318;--gold:#d4a843;--gold-light:#f0c96a;--text-dark:#1a1a1a;--red:#c0392b;}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'DM Sans',sans-serif;background:var(--green-dark);color:var(--text-dark);min-height:100vh;overflow-x:hidden}
+  header{background:linear-gradient(135deg,var(--green-dark) 0%,var(--green) 100%);padding:20px 20px 16px;text-align:center;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+  header h1{font-family:'Bebas Neue',cursive;font-size:2.8rem;color:var(--gold);letter-spacing:4px;line-height:1;text-shadow:2px 2px 8px rgba(0,0,0,0.5)}
+  header p{color:rgba(255,255,255,0.7);font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+  .step-indicator{display:flex;justify-content:center;gap:8px;margin-top:14px}
+  .step-dot{width:28px;height:5px;border-radius:3px;background:rgba(255,255,255,0.2);transition:background 0.3s}
+  .step-dot.active{background:var(--gold)}.step-dot.done{background:var(--green-light)}
+  .screen{display:none;min-height:calc(100vh - 120px);padding:20px 16px 40px;max-width:600px;margin:0 auto}
+  .screen.active{display:block}
+  .screen-title{font-family:'Bebas Neue',cursive;font-size:1.8rem;color:var(--gold-light);letter-spacing:2px;margin-bottom:6px}
+  .screen-sub{color:rgba(255,255,255,0.85);font-size:0.8rem;letter-spacing:1px;margin-bottom:20px}
+  .player-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .player-card{background:rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.18);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;user-select:none}
+  .player-card:active{transform:scale(0.96)}
+  .player-card.selected{background:rgba(212,168,67,0.22);border-color:var(--gold)}
+  .player-card .pname{font-weight:800;color:#fff;font-size:1.15rem;line-height:1.25;text-shadow:0 1px 4px rgba(0,0,0,0.6)}
+  .player-card .phcp{color:#fff;font-size:1rem;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,0.6);margin-top:4px}
+  .player-card .check{float:right;font-size:1.3rem;opacity:0;transition:opacity 0.2s}
+  .player-card.selected .check{opacity:1}
+  .count-badge{background:var(--gold);color:var(--green-dark);font-weight:700;font-size:0.85rem;padding:6px 14px;border-radius:20px;display:inline-block;margin-bottom:16px}
+  .roster-list{display:flex;flex-direction:column;gap:8px}
+  .roster-item{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+  .roster-item .rname{flex:1;color:#fff;font-weight:800;font-size:1.1rem;text-shadow:0 1px 4px rgba(0,0,0,0.6)}
+  .remove-btn{background:rgba(180,40,30,0.75);border:2px solid #fff;color:#fff;border-radius:8px;padding:7px 12px;font-size:0.95rem;font-weight:800;cursor:pointer;transition:all 0.2s;text-shadow:0 1px 3px rgba(0,0,0,0.6)}
+  .remove-btn:active{background:rgba(192,57,43,0.5)}
+  .hcp-input{background:rgba(0,0,0,0.4);border:1.5px solid rgba(255,255,255,0.4);color:#fff;border-radius:8px;padding:4px 8px;width:60px;font-size:0.95rem;font-weight:800;text-align:center;font-family:'DM Sans',sans-serif}
+  .score-entry-list{display:flex;flex-direction:column;gap:10px}
+  .score-row{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.18);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+  .score-row .sname{flex:1;color:#fff;font-size:1rem;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,0.6)}
+  .score-row .shcp{color:#fff;font-size:0.85rem;font-weight:700}
+  .gross-input{background:rgba(0,0,0,0.3);border:1.5px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;padding:7px 10px;width:68px;font-size:1rem;text-align:center;font-family:'DM Sans',sans-serif;transition:border-color 0.2s}
+  .gross-input:focus{outline:none;border-color:var(--gold)}
+  .net-display{color:var(--gold-light);font-size:0.8rem;font-weight:600;min-width:50px;text-align:right}
+  .ctp-hole-row{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.18);border-radius:12px;padding:14px;margin-bottom:10px}
+  .ctp-hole-label{color:#fff;font-size:0.95rem;font-weight:800;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+  .ctp-select{background:rgba(0,0,0,0.3);border:1.5px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;padding:9px 12px;width:100%;font-size:0.9rem;font-family:'DM Sans',sans-serif;appearance:none}
+  .results-card{background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:14px;overflow:hidden;margin-bottom:16px}
+  .results-card-header{background:rgba(45,138,69,0.5);border-bottom:1px solid rgba(212,168,67,0.3);padding:10px 16px;font-family:'Bebas Neue',cursive;color:var(--gold-light);letter-spacing:2px;font-size:1.1rem}
+  .result-row{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.08);gap:12px;background:rgba(80,80,80,0.35)}
+  .result-row:last-child{border-bottom:none}
+  .place-num{font-family:'Bebas Neue',cursive;font-size:1.3rem;color:var(--gold);min-width:36px;text-align:center}
+  .result-name{flex:1;color:#fff;font-size:1rem;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,0.5)}
+  .result-net{color:#fff;font-size:0.85rem;font-weight:600}
+  .result-payout{color:#4cd964;font-weight:700;font-size:0.95rem}
+  .tied-label{color:var(--gold-light);font-size:0.7rem;font-family:'Bebas Neue',cursive;letter-spacing:1px}
+  .btn{display:block;width:100%;padding:15px;border-radius:12px;font-family:'Bebas Neue',cursive;font-size:1.2rem;letter-spacing:2px;border:none;cursor:pointer;transition:all 0.2s;margin-top:12px}
+  .btn:active{transform:scale(0.97)}
+  .btn-primary{background:linear-gradient(135deg,var(--gold) 0%,#b8902a 100%);color:var(--green-dark);box-shadow:0 4px 16px rgba(212,168,67,0.35)}
+  .btn-secondary{background:rgba(0,0,0,0.3);color:#fff;border:1.5px solid rgba(255,255,255,0.35);font-size:1rem}
+  .btn-danger{background:rgba(180,40,30,0.75);color:#fff;border:2px solid #fff;font-size:1rem;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+  .btn-success{background:linear-gradient(135deg,#2d8a45,#1a5c2a);color:#fff;box-shadow:0 4px 16px rgba(45,138,69,0.3)}
+  .divider{height:1px;background:rgba(255,255,255,0.08);margin:20px 0}
+  .pot-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07)}
+  .pot-row:last-child{border-bottom:none}
+  .pot-label{color:#fff;font-size:0.9rem;font-weight:700}
+  .pot-value{color:var(--gold-light);font-weight:700;font-size:1rem}
+  .stepper{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.25);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;padding:6px;width:fit-content;margin:10px 0}
+  .stepper-btn{background:rgba(255,255,255,0.1);border:none;color:#fff;width:38px;height:38px;border-radius:8px;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+  .stepper-btn:active{background:var(--gold);color:var(--green-dark)}
+  .stepper-val{color:var(--gold-light);font-family:'Bebas Neue',cursive;font-size:1.6rem;min-width:32px;text-align:center}
+  .field-label{color:rgba(255,255,255,0.9);font-size:0.8rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;margin-top:12px}
+  .field-label:first-child{margin-top:0}
+  .text-input{background:rgba(0,0,0,0.3);border:1.5px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;padding:10px 12px;width:100%;font-size:0.9rem;font-family:'DM Sans',sans-serif;transition:border-color 0.2s}
+  .text-input:focus{outline:none;border-color:var(--gold)}
+  .hcp-update-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.05);gap:12px}
+  .hcp-name{flex:1;color:#fff;font-size:0.95rem;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,0.5)}
+  .hcp-old{background:#fff;color:#000;font-size:1rem;font-weight:800;min-width:44px;text-align:center;border-radius:6px;padding:3px 8px}
+  .hcp-new{background:#fff;font-weight:800;font-size:1rem;min-width:44px;text-align:center;border-radius:6px;padding:3px 8px}
+  #toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(30,30,30,0.95);border:1px solid var(--gold);color:#fff;padding:12px 24px;border-radius:24px;font-size:0.85rem;z-index:999;transition:transform 0.3s;white-space:nowrap}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;overflow-y:auto}
+  .modal-overlay.open{display:flex}
+  .modal{background:#1a2a1f;border:1px solid rgba(255,255,255,0.12);border-radius:20px 20px 0 0;padding:24px 20px 60px;width:100%;max-width:600px;animation:slideUp 0.3s ease;position:relative}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal-title{font-family:'Bebas Neue',cursive;color:var(--gold-light);font-size:1.4rem;letter-spacing:2px;margin-bottom:16px}
+  .pool-summary{background:rgba(80,80,80,0.45);border:2px solid rgba(212,168,67,0.6);border-radius:14px;padding:16px;margin-bottom:16px}
+  .pool-total{font-family:'Bebas Neue',cursive;font-size:2.4rem;color:var(--gold);line-height:1;text-align:center}
+  .pool-sub{text-align:center;color:rgba(255,255,255,0.5);font-size:0.75rem;letter-spacing:1px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>⛳ KevGolf</h1>
+  <p>Highest Net Score Wins</p>
+  <div class="step-indicator">
+    <div class="step-dot" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+    <div class="step-dot" id="dot4"></div>
+  </div>
+</header>
+
+<div class="screen active" id="screen-0">
+  <div class="screen-title">Who's Playing?</div>
+  <div class="screen-sub">TAP TO SELECT · SCROLL TO SEE ALL</div>
+  <div class="count-badge" id="select-count">0 selected</div>
+  <div class="player-grid" id="player-grid"></div>
+  <button class="btn btn-primary" onclick="goToReview()" style="margin-top:20px">Review Lineup →</button>
+  <button class="btn btn-secondary" id="copy-lineup-btn" onclick="copyLineup()" style="margin-top:8px;display:none">📋 Copy Player List</button>
+</div>
+
+<div class="screen" id="screen-1">
+  <div class="screen-title">Lineup Review</div>
+  <div class="screen-sub">ADJUST HANDICAPS · ADD OR REMOVE PLAYERS</div>
+  <div class="roster-list" id="review-list"></div>
+  <div style="margin-top:16px">
+    <button class="btn btn-secondary" onclick="openAddModal()">+ Add Player</button>
+    <button class="btn btn-secondary" onclick="goBack(0)">← Change Selections</button>
+    <button class="btn btn-secondary" onclick="copyLineup()">📋 Copy Player List</button>
+  </div>
+  <div class="divider"></div>
+  <button class="btn btn-primary" onclick="goToScores()">Enter Scores →</button>
+</div>
+
+<div class="screen" id="screen-2">
+  <div class="screen-title">Enter Gross Scores</div>
+  <div class="screen-sub">NET = GROSS − HANDICAP</div>
+  <div class="score-entry-list" id="score-list"></div>
+  <div class="divider"></div>
+  <button class="btn btn-primary" onclick="goToCTP()">Set Up CTP Holes →</button>
+  <button class="btn btn-secondary" onclick="goBack(1)">← Back to Lineup</button>
+</div>
+
+<div class="screen" id="screen-3">
+  <div class="screen-title">Closest to Pin</div>
+  <div class="screen-sub">SET NUMBER OF HOLES · ASSIGN WINNERS</div>
+  <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:8px;">Number of CTP holes:</div>
+  <div class="stepper">
+    <button class="stepper-btn" onclick="changeCTP(-1)">−</button>
+    <div class="stepper-val" id="ctp-count">2</div>
+    <button class="stepper-btn" onclick="changeCTP(1)">+</button>
+  </div>
+  <div id="ctp-holes-list" style="margin-top:16px;"></div>
+  <div class="divider"></div>
+  <button class="btn btn-primary" onclick="calcResults()">Calculate Results →</button>
+  <button class="btn btn-secondary" onclick="goBack(2)">← Back to Scores</button>
+</div>
+
+<div class="screen" id="screen-4">
+  <div class="screen-title">Results</div>
+  <div class="screen-sub">FINAL PAYOUTS</div>
+  <div class="pool-summary" id="pool-summary"></div>
+  <div class="results-card">
+    <div class="results-card-header">🏆 Place Payouts</div>
+    <div id="place-results"></div>
+  </div>
+  <div class="results-card">
+    <div class="results-card-header">🎯 Closest to Pin</div>
+    <div id="ctp-results"></div>
+  </div>
+  <div class="results-card">
+    <div class="results-card-header">📋 Handicap Updates</div>
+    <div id="hcp-results"></div>
+    <div style="padding:12px 16px;display:flex;gap:10px;">
+      <button class="btn btn-success" onclick="applyHandicaps(true)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">✓ Apply New HCPs</button>
+      <button class="btn btn-danger" onclick="applyHandicaps(false)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">✗ Keep Old</button>
+    </div>
+  </div>
+  <button class="btn btn-secondary" onclick="copyResults()" style="margin-top:4px">📋 Copy Results as Text</button>
+  <button class="btn btn-secondary" onclick="newRound()" style="margin-top:4px">Start New Round ↺</button>
+</div>
+
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">Add Player</div>
+    <div class="field-label">Search Roster</div>
+    <input class="text-input" id="search-input" placeholder="Type name to search..." oninput="searchRoster()" autocomplete="off">
+    <div id="search-results" style="margin-top:10px;max-height:200px;overflow-y:auto;"></div>
+    <div class="divider"></div>
+    <div class="modal-title" style="font-size:1.1rem;">Or Add New Player</div>
+    <div class="field-label">Full Name</div>
+    <input class="text-input" id="new-name" placeholder="First Last" autocomplete="off">
+    <div class="field-label">Handicap</div>
+    <input class="text-input" id="new-hcp" placeholder="e.g. 18" type="number" min="0" max="54">
+    <div class="field-label">Email (optional)</div>
+    <input class="text-input" id="new-email" placeholder="email@example.com" type="email">
+    <button class="btn btn-primary" onclick="addNewPlayer()" style="margin-top:14px">Add to Lineup</button>
+    <button class="btn btn-secondary" onclick="closeModal()" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const origNames=["Jon Anderson","Bill Baldwin","Craig Barbret","Bruce Broekhuizen","Kevin Bryan","Bob Camirie","Phil Colson","Randy Corona","Brad Dunham","Jason Eads","Jim Eads","Andy Eggers","Gene Eeingenburg","Dale Fraaza","Jimmy Friese","Wally Fulton","Kimmer Gaites","Perry Gould","Greg Gutchigan","Rod Kennedy","Bill Laubenstein","Ed Lawlor","Greg Leisgang","Tom Manuel","Kevin McGuire","Terry Noble","Patrick Reilly","Elvis Rodriguez","Cliff Rupnow","Fred Russo","Dennis Sarlo","Tim Sax","Bob Staples","Chuck Starcevich","Loren Van Wyk","Bruce Vick","Larry Vollett","Al Wolden","Eli Wettenstein","Matt Winfree","Jim Yeazle","Anthony Starcevich"];
+
+let roster={
+  "Jon Anderson":{hcp:24,email:"janderson6683@gmail.com"},
+  "Bill Baldwin":{hcp:15,email:"airbill2@aol.com"},
+  "Craig Barbret":{hcp:28,email:"cbarbret123@yahoo.com"},
+  "Bruce Broekhuizen":{hcp:10,email:"bpbroeky@gmail.com"},
+  "Kevin Bryan":{hcp:28,email:"kevinbryan.gonefishing@gmail.com"},
+  "Bob Camirie":{hcp:15,email:"ritacamire@gmail.com"},
+  "Phil Colson":{hcp:24,email:"pcolson2358@yahoo.com"},
+  "Randy Corona":{hcp:0,email:"hsalon@earthlink.com"},
+  "Brad Dunham":{hcp:24,email:"braddunham216@gmail.com"},
+  "Jason Eads":{hcp:28,email:"jaysneads@gmail.com"},
+  "Jim Eads":{hcp:24,email:"jimeads@yahoo.com"},
+  "Andy Eggers":{hcp:10,email:"aeggerts@jwchilds.com"},
+  "Gene Eeingenburg":{hcp:21,email:"geburg23@gmail.com"},
+  "Dale Fraaza":{hcp:23,email:"drfraaza@gmail.com"},
+  "Jimmy Friese":{hcp:15,email:null},
+  "Wally Fulton":{hcp:17,email:"fultonway219@aol.com"},
+  "Kimmer Gaites":{hcp:14,email:"Kimmerj63@gmail.com"},
+  "Perry Gould":{hcp:15,email:"pjgould@aol.com"},
+  "Greg Gutchigan":{hcp:17,email:"bonzini@comcast.net"},
+  "Rod Kennedy":{hcp:15,email:"rodkennedy22@yahoo.com"},
+  "Bill Laubenstein":{hcp:18,email:"billob0818@gmail.com"},
+  "Ed Lawlor":{hcp:19,email:"edlawlor50@gmail.com"},
+  "Greg Leisgang":{hcp:0,email:"gregleisgang@gmail.com"},
+  "Tom Manuel":{hcp:17,email:"tgmanuel795@gmail.com"},
+  "Kevin McGuire":{hcp:21,email:"subaho2003@yahoo.com"},
+  "Terry Noble":{hcp:10,email:"terrynobles@verizon.net"},
+  "Patrick Reilly":{hcp:18,email:"pjrias@yahoo.com"},
+  "Elvis Rodriguez":{hcp:15,email:"rodriguez49@msn.com"},
+  "Cliff Rupnow":{hcp:0,email:"apef50@sbcglobal.net"},
+  "Fred Russo":{hcp:14,email:"frusso2016@hotmail.com"},
+  "Dennis Sarlo":{hcp:15,email:"dennissarlo@netzero.net"},
+  "Tim Sax":{hcp:25,email:"t.sax@comcast.net"},
+  "Bob Staples":{hcp:16,email:"rvstaples@gmail.com"},
+  "Chuck Starcevich":{hcp:11,email:"cstarcevich@att.net"},
+  "Loren Van Wyk":{hcp:21,email:"lorenvanwyk@yahoo.com"},
+  "Bruce Vick":{hcp:12,email:"vickbn@yahoo.com"},
+  "Larry Vollett":{hcp:18,email:"lvollett@gmail.com"},
+  "Al Wolden":{hcp:25,email:"alwolden@gmail.com"},
+  "Eli Wettenstein":{hcp:13,email:"eliwett@gmail.com"},
+  "Matt Winfree":{hcp:11,email:"MattWinfree@outlook.com"},
+  "Jim Yeazle":{hcp:26,email:"jyeazle@comcast.net"},
+  "Anthony Starcevich":{hcp:25,email:null}
+};
+
+const payouts={
+  3:[20,10],4:[25,15],5:[25,15,10],6:[30,20,10],7:[30,20,15,5],
+  8:[35,25,15,5],9:[35,25,20,10],10:[35,25,20,15,5],
+  11:[35,30,20,15,10],12:[35,30,25,15,10,5],13:[35,30,25,20,15,5],
+  14:[40,30,25,20,15,10],15:[40,35,25,20,15,10],
+  16:[40,35,30,25,15,10,5],17:[40,35,30,25,20,15,5],
+  18:[45,35,30,25,20,15,10,5],19:[45,40,30,25,20,15,10,5],
+  20:[50,45,30,25,20,15,10,5],21:[55,45,30,25,20,15,10,10],
+  22:[60,50,30,25,20,15,10,10],23:[60,50,35,30,20,15,10,10],
+  24:[60,50,35,30,20,15,15,10,5],25:[60,50,40,30,20,15,15,10,10],
+  26:[60,55,45,30,20,15,15,10,10],27:[60,55,45,30,20,20,15,10,10,5],
+  28:[60,55,45,35,20,20,15,10,10,10]
+};
+
+let selected=new Set(),activePlayers=[],ctpCount=2,ctpWinners={};
+let grossScores={},lastResults=null,proposedHcps={},workingHcps={};
+
+function init(){
+  try{const s=localStorage.getItem('kevgolf_hcps');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(roster[n])roster[n].hcp=d[n];});}}catch(e){}
+  try{const s=localStorage.getItem('kevgolf_emails');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(roster[n])roster[n].email=d[n];});}}catch(e){}
+  try{const s=localStorage.getItem('kevgolf_newplayers');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(!roster[n])roster[n]=d[n];});}}catch(e){}
+  loadSelections();buildPlayerGrid();updateDots(0);
+}
+
+function saveAllRosterData(){
+  try{const s={};Object.keys(roster).forEach(n=>{s[n]=roster[n].hcp;});localStorage.setItem('kevgolf_hcps',JSON.stringify(s));}catch(e){}
+  try{const s={};Object.keys(roster).forEach(n=>{if(roster[n].email)s[n]=roster[n].email;});localStorage.setItem('kevgolf_emails',JSON.stringify(s));}catch(e){}
+  try{const s={};Object.keys(roster).forEach(n=>{if(!origNames.includes(n))s[n]=roster[n];});localStorage.setItem('kevgolf_newplayers',JSON.stringify(s));}catch(e){}
+}
+
+function buildPlayerGrid(){
+  const grid=document.getElementById('player-grid');
+  grid.innerHTML='';
+  Object.keys(roster).sort().forEach(name=>{
+    const card=document.createElement('div');
+    card.className='player-card'+(selected.has(name)?' selected':'');
+    card.innerHTML=`<span class="check">✓</span><div class="pname">${name}</div><div class="phcp">HCP: ${roster[name].hcp}</div>`;
+    card.onclick=()=>togglePlayer(name,card);
+    grid.appendChild(card);
+  });
+  updateCount();
+}
+
+function togglePlayer(name,card){
+  if(selected.has(name)){selected.delete(name);card.classList.remove('selected');}
+  else{selected.add(name);card.classList.add('selected');}
+  updateCount();
+}
+
+function updateCount(){
+  document.getElementById('select-count').textContent=`${selected.size} selected`;
+  document.getElementById('copy-lineup-btn').style.display=selected.size>=1?'block':'none';
+  saveSelections();
+}
+
+function saveSelections(){try{localStorage.setItem('kevgolf_selected',JSON.stringify(Array.from(selected)));}catch(e){}}
+function loadSelections(){try{const s=localStorage.getItem('kevgolf_selected');if(s)JSON.parse(s).forEach(n=>{if(roster[n])selected.add(n);});}catch(e){}}
+
+function copyLineup(){
+  const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  let txt=`KEVGOLF — PLAYER LIST\n${date}\n`+'='.repeat(36)+'\n\n'+`${selected.size} Players:\n\n`;
+  Array.from(selected).sort().forEach((n,i)=>{txt+=`${String(i+1).padEnd(3)} ${n.padEnd(24)} HCP ${roster[n].hcp}\n`;});
+  txt+='\n'+'='.repeat(36)+'\n';
+  navigator.clipboard.writeText(txt).then(()=>toast('✓ Player list copied!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Player list copied!');
+  });
+}
+
+function showScreen(n){
+  document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===n));
+  updateDots(n);window.scrollTo(0,0);
+}
+
+function updateDots(cur){
+  for(let i=0;i<5;i++){
+    const d=document.getElementById(`dot${i}`);
+    d.className='step-dot'+(i<cur?' done':i===cur?' active':'');
+  }
+}
+
+function goBack(n){showScreen(n);}
+
+function goToReview(){
+  if(selected.size<3){toast('Select at least 3 players');return;}
+  activePlayers=Array.from(selected).sort();
+  workingHcps={};activePlayers.forEach(n=>{workingHcps[n]=roster[n].hcp;});
+  buildReviewList();showScreen(1);
+}
+
+function buildReviewList(){
+  const list=document.getElementById('review-list');
+  list.innerHTML='';
+  activePlayers.forEach(name=>{
+    const row=document.createElement('div');
+    row.className='roster-item';
+    row.innerHTML=`<div class="rname">${name}</div>
+      <input class="hcp-input" type="number" min="0" max="54" value="${workingHcps[name]}"
+        onchange="workingHcps['${name}']=parseFloat(this.value)||0" aria-label="handicap">
+      <button class="remove-btn" onclick="removeFromLineup('${name}')">Remove</button>`;
+    list.appendChild(row);
+  });
+}
+
+function removeFromLineup(name){
+  activePlayers=activePlayers.filter(n=>n!==name);
+  selected.delete(name);delete workingHcps[name];
+  buildReviewList();buildPlayerGrid();toast(`Removed ${name}`);
+}
+
+function goToScores(){buildScoreList();showScreen(2);}
+
+function goToCTP(){
+  if(activePlayers.length<3){toast('Need at least 3 players');return;}
+  renderCTPHoles();showScreen(3);
+}
+
+function renderCTPHoles(){
+  const list=document.getElementById('ctp-holes-list');
+  list.innerHTML='';
+  document.getElementById('ctp-count').textContent=ctpCount;
+  const opts=activePlayers.map(n=>`<option value="${n}">${n}</option>`).join('');
+  for(let h=1;h<=ctpCount;h++){
+    const cur=ctpWinners[h]||'';
+    const div=document.createElement('div');
+    div.className='ctp-hole-row';
+    div.innerHTML=`<div class="ctp-hole-label">Hole ${h} Winner</div>
+      <select class="ctp-select" id="ctp-hole-${h}" onchange="ctpWinners[${h}]=this.value">
+        <option value="">-- No winner yet --</option>${opts}
+      </select>`;
+    list.appendChild(div);
+    if(cur)setTimeout(()=>{const el=document.getElementById(`ctp-hole-${h}`);if(el)el.value=cur;},10);
+  }
+}
+
+function changeCTP(delta){ctpCount=Math.max(0,ctpCount+delta);renderCTPHoles();}
+
+function buildScoreList(){
+  const list=document.getElementById('score-list');
+  list.innerHTML='';
+  activePlayers.forEach(name=>{
+    const hcp=workingHcps[name];
+    const prev=grossScores[name]||'';
+    const sid=safeid(name);
+    const row=document.createElement('div');
+    row.className='score-row';
+    row.innerHTML=`<div style="flex:1"><div class="sname">${name}</div><div class="shcp">HCP ${hcp}</div></div>
+      <input class="gross-input" id="gross-${sid}" type="number" min="50" max="150"
+        placeholder="Gross" value="${prev}" oninput="updateNet('${name}',this.value)">
+      <div class="net-display" id="net-${sid}">${prev?'Net '+(prev-hcp).toFixed(1):'—'}</div>`;
+    list.appendChild(row);
+  });
+}
+
+function safeid(n){return n.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');}
+
+function updateNet(name,val){
+  const hcp=workingHcps[name];
+  const el=document.getElementById(`net-${safeid(name)}`);
+  if(val&&!isNaN(val)){grossScores[name]=parseFloat(val);el.textContent='Net '+(parseFloat(val)-hcp).toFixed(1);}
+  else{delete grossScores[name];el.textContent='—';}
+}
+
+function calcResults(){
+  const scored=activePlayers.filter(n=>grossScores[n]!==undefined);
+  if(scored.length<2){toast('Enter at least 2 scores');return;}
+  const count=activePlayers.length;
+  const totalPot=count*15,ctpPot=count*5,placePot=totalPot-ctpPot;
+  const perHoleCTP=ctpCount>0?ctpPot/ctpCount:0;
+  const nets={};scored.forEach(n=>{nets[n]=grossScores[n]-workingHcps[n];});
+  const sorted=Object.entries(nets).sort((a,b)=>b[1]-a[1]);
+  const groups={};
+  sorted.forEach(([n,net])=>{const k=net.toFixed(1);if(!groups[k])groups[k]=[];groups[k].push(n);});
+  const uniqueNets=Object.keys(groups).map(Number).sort((a,b)=>b-a);
+  const place_payouts=payouts[count]||Array(count).fill(0);
+  const playerPayout={};let place=0;
+  uniqueNets.forEach(net=>{
+    const tied=groups[net.toFixed(1)];
+    const slice=place_payouts.slice(place,place+tied.length);
+    const sum=slice.reduce((a,b)=>a+b,0);
+    const each=tied.length>0?sum/tied.length:0;
+    tied.forEach(n=>{playerPayout[n]=each;});place+=tied.length;
+  });
+  proposedHcps={};
+  activePlayers.forEach(name=>{
+    const net=nets[name],old=workingHcps[name];
+    if(net===undefined){proposedHcps[name]=old;return;}
+    let adj=0;
+    if(net<=-3)adj=-1;else if(net<=2)adj=0;else adj=Math.floor((net-2)/2)+1;
+    proposedHcps[name]=Math.max(0,old+adj);
+  });
+  lastResults={count,totalPot,ctpPot,placePot,perHoleCTP,nets,groups,uniqueNets,playerPayout};
+  renderResults(lastResults);showScreen(4);
+}
+
+function renderResults(r){
+  const{count,totalPot,ctpPot,placePot,perHoleCTP,nets,groups,uniqueNets,playerPayout}=r;
+  document.getElementById('pool-summary').innerHTML=`
+    <div class="pool-total">$${totalPot}</div>
+    <div class="pool-sub">TOTAL POT · ${count} PLAYERS × $15</div>
+    <div class="pot-row"><span class="pot-label">Place Payouts</span><span class="pot-value">$${placePot}</span></div>
+    <div class="pot-row"><span class="pot-label">CTP Pool (${ctpCount} holes)</span><span class="pot-value">$${ctpPot} · $${perHoleCTP.toFixed(2)}/hole</span></div>`;
+  const pr=document.getElementById('place-results');pr.innerHTML='';
+  let place=1;
+  uniqueNets.forEach(net=>{
+    const tied=groups[net.toFixed(1)].slice().sort();
+    const each=playerPayout[tied[0]];
+    tied.forEach(name=>{
+      const row=document.createElement('div');row.className='result-row';
+      const label=tied.length>1?`<span class="tied-label">T</span>${place}`:place;
+      row.innerHTML=`<div class="place-num">${label}</div>
+        <div><div class="result-name">${name}</div><div class="result-net">Net ${net.toFixed(1)}</div></div>
+        <div class="result-payout">$${each.toFixed(2)}</div>`;
+      pr.appendChild(row);
+    });
+    place+=tied.length;
+  });
+  const cr=document.getElementById('ctp-results');cr.innerHTML='';
+  if(ctpCount===0){
+    cr.innerHTML='<div class="result-row"><div class="result-name" style="color:rgba(255,255,255,0.4)">No CTP holes this round</div></div>';
+  }else{
+    for(let h=1;h<=ctpCount;h++){
+      const winner=ctpWinners[h]||'—';
+      const row=document.createElement('div');row.className='result-row';
+      row.innerHTML=`<div class="place-num" style="font-size:1rem;color:var(--gold-light)">H${h}</div>
+        <div class="result-name">${winner}</div>
+        <div class="result-payout">${winner!=='—'?'$'+perHoleCTP.toFixed(2):'—'}</div>`;
+      cr.appendChild(row);
+    }
+  }
+  const hr=document.getElementById('hcp-results');hr.innerHTML='';
+  activePlayers.slice().sort().forEach(name=>{
+    const oldH=workingHcps[name],newH=proposedHcps[name],diff=newH-oldH;
+    const newColor=diff>0?'#1a8a1a':diff<0?'#cc0000':'#111111';
+    const row=document.createElement('div');row.className='hcp-update-row';
+    row.innerHTML=`<div class="hcp-name">${name}</div>
+      <div class="hcp-old">${oldH}</div>
+      <div class="hcp-new" style="color:${newColor}">${newH}</div>`;
+    hr.appendChild(row);
+  });
+}
+
+function applyHandicaps(apply){
+  if(apply){
+    activePlayers.forEach(n=>{roster[n].hcp=proposedHcps[n];});
+    saveAllRosterData();
+    toast('✓ New handicaps saved!');
+  }else{toast('Handicaps unchanged');}
+}
+
+function copyResults(){
+  if(!lastResults)return;
+  const{count,totalPot,ctpPot,placePot,perHoleCTP,nets,groups,uniqueNets,playerPayout}=lastResults;
+  const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  let txt=`KEVGOLF — RESULTS\n${date}\n`+'='.repeat(36)+'\n\n';
+  txt+=`PLAYERS: ${count}  |  TOTAL POT: $${totalPot}\nPlace Pool: $${placePot}  |  CTP Pool: $${ctpPot}\n\n`;
+  txt+='── STANDINGS ──\n';
+  let place=1;
+  uniqueNets.forEach(net=>{
+    const tied=groups[net.toFixed(1)].slice().sort();
+    const each=playerPayout[tied[0]];
+    tied.forEach(name=>{
+      const prefix=tied.length>1?`T${place}`:`${place} `;
+      txt+=`${prefix.padEnd(3)} ${name.padEnd(22)} Net ${net.toFixed(1).padStart(5)}   $${each.toFixed(2)}\n`;
+    });place+=tied.length;
+  });
+  txt+='\n── CLOSEST TO PIN ──\n';
+  if(ctpCount===0){txt+='No CTP holes this round\n';}
+  else{for(let h=1;h<=ctpCount;h++){const w=ctpWinners[h]||'—';txt+=`Hole ${h}: ${w.padEnd(22)} $${perHoleCTP.toFixed(2)}\n`;}}
+  txt+='\n── HANDICAP UPDATES ──\n';
+  activePlayers.slice().sort().forEach(name=>{
+    const oldH=workingHcps[name],newH=proposedHcps[name];
+    const arrow=newH>oldH?'▲':newH<oldH?'▼':'=';
+    txt+=`${name.padEnd(24)} ${String(oldH).padStart(2)} → ${String(newH).padStart(2)}  ${arrow}\n`;
+  });
+  txt+='\n'+'='.repeat(36)+'\n';
+  navigator.clipboard.writeText(txt).then(()=>toast('✓ Results copied to clipboard!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    toast('✓ Results copied to clipboard!');
+  });
+}
+
+function newRound(){
+  selected=new Set();
+  try{localStorage.removeItem('kevgolf_selected');}catch(e){}
+  activePlayers=[];ctpWinners={};grossScores={};ctpCount=2;
+  lastResults=null;proposedHcps={};workingHcps={};
+  buildPlayerGrid();showScreen(0);
+}
+
+function openAddModal(){
+  document.getElementById('search-input').value='';
+  document.getElementById('search-results').innerHTML='';
+  document.getElementById('new-name').value='';
+  document.getElementById('new-hcp').value='';
+  document.getElementById('new-email').value='';
+  document.getElementById('add-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('add-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function searchRoster(){
+  const q=document.getElementById('search-input').value.toLowerCase().trim();
+  const el=document.getElementById('search-results');el.innerHTML='';
+  if(!q)return;
+  const matches=Object.keys(roster).filter(n=>n.toLowerCase().includes(q)&&!activePlayers.includes(n));
+  matches.slice(0,6).forEach(name=>{
+    const btn=document.createElement('button');
+    btn.className='btn btn-secondary';
+    btn.style.cssText='margin-top:6px;text-align:left;padding:10px 14px;font-size:0.85rem;font-family:DM Sans,sans-serif;letter-spacing:0';
+    btn.textContent=`${name} (HCP ${roster[name].hcp})`;
+    btn.onclick=()=>addFromRoster(name);
+    el.appendChild(btn);
+  });
+  if(matches.length===0)el.innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:0.8rem;padding:8px 0;">No match — add as new player below</div>';
+}
+
+function addFromRoster(name){
+  if(!activePlayers.includes(name)){
+    activePlayers.push(name);activePlayers.sort();
+    selected.add(name);workingHcps[name]=roster[name].hcp;
+    buildReviewList();buildPlayerGrid();closeModal();toast(`Added ${name}`);
+  }
+}
+
+function addNewPlayer(){
+  const name=document.getElementById('new-name').value.trim();
+  const hcp=parseFloat(document.getElementById('new-hcp').value)||0;
+  const email=document.getElementById('new-email').value.trim()||null;
+  if(!name){toast('Enter a name');return;}
+  roster[name]={hcp,email};
+  saveAllRosterData();
+  addFromRoster(name);
+}
+
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+document.getElementById('add-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+init();
+</script>
+</body>
+</html>

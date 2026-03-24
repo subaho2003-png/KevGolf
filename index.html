@@ -203,7 +203,7 @@ let roster={
   "Kevin Bryan":{hcp:28,email:"kevinbryan.gonefishing@gmail.com"},
   "Bob Camirie":{hcp:15,email:"ritacamire@gmail.com"},
   "Phil Colson":{hcp:24,email:"pcolson2358@yahoo.com"},
-  "Randy Corona":{hcp:15,email:"hsalon@earthlink.com"},
+  "Randy Corona":{hcp:0,email:"hsalon@earthlink.com"},
   "Brad Dunham":{hcp:24,email:"braddunham216@gmail.com"},
   "Jason Eads":{hcp:28,email:"jaysneads@gmail.com"},
   "Jim Eads":{hcp:24,email:"jimeads@yahoo.com"},
@@ -224,7 +224,7 @@ let roster={
   "Terry Noble":{hcp:10,email:"terrynobles@verizon.net"},
   "Patrick Reilly":{hcp:18,email:"pjrias@yahoo.com"},
   "Elvis Rodriguez":{hcp:15,email:"rodriguez49@msn.com"},
-  "Cliff Rupnow":{hcp:15,email:"apef50@sbcglobal.net"},
+  "Cliff Rupnow":{hcp:0,email:"apef50@sbcglobal.net"},
   "Fred Russo":{hcp:14,email:"frusso2016@hotmail.com"},
   "Dennis Sarlo":{hcp:15,email:"dennissarlo@netzero.net"},
   "Tim Sax":{hcp:25,email:"t.sax@comcast.net"},
@@ -257,7 +257,17 @@ const payouts={
 let selected=new Set(),activePlayers=[],ctpCount=2,ctpWinners={};
 let grossScores={},lastResults=null,proposedHcps={},workingHcps={};
 
+const VERSION = '2.0';
+
 function init(){
+  // Clear old localStorage if version doesn't match
+  try{
+    const v = localStorage.getItem('kevgolf_version');
+    if(v !== VERSION){
+      localStorage.clear();
+      localStorage.setItem('kevgolf_version', VERSION);
+    }
+  }catch(e){}
   try{const s=localStorage.getItem('kevgolf_hcps');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(roster[n])roster[n].hcp=d[n];});}}catch(e){}
   try{const s=localStorage.getItem('kevgolf_emails');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(roster[n])roster[n].email=d[n];});}}catch(e){}
   try{const s=localStorage.getItem('kevgolf_newplayers');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(!roster[n])roster[n]=d[n];});}}catch(e){}

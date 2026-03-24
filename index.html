@@ -193,7 +193,7 @@
 <div id="toast"></div>
 
 <script>
-const origNames=["Jon Anderson","Bill Baldwin","Craig Barbret","Bruce Broekhuizen","Kevin Bryan","Bob Camirie","Phil Colson","Randy Corona","Brad Dunham","Jason Eads","Jim Eads","Andy Eggers","Gene Eeingenburg","Dale Fraaza","Jimmy Friese","Wally Fulton","Kimmer Gaites","Perry Gould","Greg Gutchigan","Rod Kennedy","Bill Laubenstein","Ed Lawlor","Greg Leisgang","Tom Manuel","Kevin McGuire","Terry Noble","Patrick Reilly","Elvis Rodriguez","Cliff Rupnow","Fred Russo","Dennis Sarlo","Tim Sax","Bob Staples","Chuck Starcevich","Loren Van Wyk","Bruce Vick","Larry Vollett","Al Wolden","Eli Wettenstein","Matt Winfree","Jim Yeazle","Anthony Starcevich"];
+const origNames=["Jon Anderson","Bill Baldwin","Craig Barbret","Bruce Broekhuizen","Kevin Bryan","Bob Camirie","Phil Colson","Randy Corona","Brad Dunham","Jason Eads","Jim Eads","Andy Eggers","Gene Eeingenburg","Dale Fraaza","Jimmy Friese","Wally Fulton","Kimmer Gaites","Perry Gould","Greg Gutchigan","Rod Kennedy","Bill Laubenstein","Ed Lawlor","Greg Leisgang","Tom Manuel","Kevin McGuire","Terry Noble","Patrick Reilly","Elvis Rodriguez","Cliff Rupnow","Fred Russo","Dennis Sarlo","Tim Sax","Bob Staples","Chuck Starcevich","Loren Van Wyk","Bruce Vick","Larry Vollett","Al Wolden","Eli Wettenstein","Matt Winfree","Jim Yeazle","Anthony Starcevich","Steve Nardiello"];
 
 let roster={
   "Jon Anderson":{hcp:24,email:"janderson6683@gmail.com"},
@@ -237,7 +237,8 @@ let roster={
   "Eli Wettenstein":{hcp:13,email:"eliwett@gmail.com"},
   "Matt Winfree":{hcp:11,email:"MattWinfree@outlook.com"},
   "Jim Yeazle":{hcp:26,email:"jyeazle@comcast.net"},
-  "Anthony Starcevich":{hcp:25,email:null}
+  "Anthony Starcevich":{hcp:25,email:null},
+  "Steve Nardiello":{hcp:21,email:null}
 };
 
 const payouts={
@@ -257,7 +258,7 @@ const payouts={
 let selected=new Set(),activePlayers=[],ctpCount=2,ctpWinners={};
 let grossScores={},lastResults=null,proposedHcps={},workingHcps={};
 
-const VERSION = '2.0';
+const VERSION = '2.1';
 
 function init(){
   // Clear old localStorage if version doesn't match

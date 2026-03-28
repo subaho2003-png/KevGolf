@@ -349,7 +349,11 @@ function buildReviewList(){
     row.className='roster-item';
     row.innerHTML=`<div class="rname">${name}</div>
       <input class="hcp-input" type="number" min="0" max="54" value="${workingHcps[name]}"
+<<<<<<< HEAD
         onchange="workingHcps['${name}']=parseFloat(this.value)||0" aria-label="handicap">
+=======
+        onchange="workingHcps['${name}']=parseFloat(this.value)||0;roster['${name}'].hcp=workingHcps['${name}'];saveAllRosterData()" aria-label="handicap">
+>>>>>>> d667fb7 (Fix handicap edits on lineup review screen not persisting to localStorage)
       <button class="remove-btn" onclick="removeFromLineup('${name}')">Remove</button>`;
     list.appendChild(row);
   });

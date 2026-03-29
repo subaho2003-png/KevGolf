@@ -23,8 +23,8 @@
   .player-card{background:rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.18);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;user-select:none}
   .player-card:active{transform:scale(0.96)}
   .player-card.selected{background:rgba(212,168,67,0.22);border-color:var(--gold)}
-  .player-card .pname{font-weight:800;color:#fff;font-size:1.15rem;line-height:1.25;text-shadow:0 1px 4px rgba(0,0,0,0.6)}
-  .player-card .phcp{color:#fff;font-size:1rem;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,0.6);margin-top:4px}
+  .player-card .pname{font-weight:800;color:#fff;font-size:0.9rem;line-height:1.25;text-shadow:0 1px 4px rgba(0,0,0,0.6)}
+  .player-card .phcp{color:#fff;font-size:0.8rem;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,0.6);margin-top:4px}
   .player-card .check{float:right;font-size:1.3rem;opacity:0;transition:opacity 0.2s}
   .player-card.selected .check{opacity:1}
   .count-badge{background:var(--gold);color:var(--green-dark);font-weight:700;font-size:0.85rem;padding:6px 14px;border-radius:20px;display:inline-block;margin-bottom:16px}
@@ -349,11 +349,7 @@ function buildReviewList(){
     row.className='roster-item';
     row.innerHTML=`<div class="rname">${name}</div>
       <input class="hcp-input" type="number" min="0" max="54" value="${workingHcps[name]}"
-<<<<<<< HEAD
-        onchange="workingHcps['${name}']=parseFloat(this.value)||0" aria-label="handicap">
-=======
         onchange="workingHcps['${name}']=parseFloat(this.value)||0;roster['${name}'].hcp=workingHcps['${name}'];saveAllRosterData()" aria-label="handicap">
->>>>>>> d667fb7 (Fix handicap edits on lineup review screen not persisting to localStorage)
       <button class="remove-btn" onclick="removeFromLineup('${name}')">Remove</button>`;
     list.appendChild(row);
   });

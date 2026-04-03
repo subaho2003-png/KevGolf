@@ -86,7 +86,55 @@
   .pool-summary{background:rgba(80,80,80,0.45);border:2px solid rgba(212,168,67,0.6);border-radius:14px;padding:16px;margin-bottom:16px}
   .pool-total{font-family:'Bebas Neue',cursive;font-size:2.4rem;color:var(--gold);line-height:1;text-align:center}
   .pool-sub{text-align:center;color:rgba(255,255,255,0.5);font-size:0.75rem;letter-spacing:1px;margin-bottom:12px}
+  .course-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+  .course-btn{background:rgba(0,0,0,0.3);border:1.5px solid rgba(255,255,255,0.2);border-radius:20px;color:rgba(255,255,255,0.8);padding:8px 14px;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif}
+  .course-btn:active{transform:scale(0.95)}
+  .course-btn.selected{background:rgba(212,168,67,0.25);border-color:var(--gold);color:var(--gold-light)}
+  .drum-wrap{position:relative;background:rgba(0,0,0,0.3);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;overflow:hidden;margin-bottom:4px}
+  .drum-picker{display:flex;align-items:center;justify-content:center;gap:4px;padding:0 12px}
+  .drum-col{height:132px;overflow-y:scroll;scroll-snap-type:y mandatory;-ms-overflow-style:none;scrollbar-width:none;width:60px}
+  .drum-col::-webkit-scrollbar{display:none}
+  .drum-item{scroll-snap-align:center;height:44px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',cursive;font-size:1.5rem;color:rgba(255,255,255,0.3);transition:color 0.12s,font-size 0.12s}
+  .drum-item.drum-center{color:var(--gold-light);font-size:1.95rem}
+  .drum-sep{font-family:'Bebas Neue',cursive;font-size:2rem;color:var(--gold-light);padding:0 2px;margin-top:-4px}
+  .drum-hl{position:absolute;top:50%;left:0;right:0;height:44px;transform:translateY(-50%);border-top:1.5px solid rgba(212,168,67,0.4);border-bottom:1.5px solid rgba(212,168,67,0.4);pointer-events:none}
+  .group-selector-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .grp-btn{flex:1;min-width:52px;padding:9px 4px;border-radius:10px;border:2.5px solid transparent;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:1px;cursor:pointer;transition:all 0.18s;text-align:center;color:#fff}
+  .grp-btn .grp-count{font-family:'DM Sans',sans-serif;font-size:0.65rem;font-weight:700;display:block;margin-top:1px;opacity:0.9}
+  .grp-btn.grp-active{transform:scale(1.1);box-shadow:0 0 14px rgba(255,255,255,0.35);border-color:#fff !important}
+  .roster-item.g1{background:rgba(255,110,110,0.3);border-color:rgba(255,110,110,0.75)}
+  .roster-item.g2{background:rgba(255,170,60,0.3);border-color:rgba(255,170,60,0.75)}
+  .roster-item.g3{background:rgba(230,215,50,0.3);border-color:rgba(230,215,50,0.75)}
+  .roster-item.g4{background:rgba(60,205,105,0.3);border-color:rgba(60,205,105,0.75)}
+  .roster-item.g5{background:rgba(80,165,255,0.3);border-color:rgba(80,165,255,0.75)}
+  .group-badge{font-family:'Bebas Neue',cursive;font-size:0.88rem;padding:3px 8px;border-radius:6px;color:#fff;flex-shrink:0}
+  .group-summary-card{border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1.5px solid rgba(255,255,255,0.15)}
+  .group-summary-title{font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:1px;color:#fff;margin-bottom:6px}
+  .group-summary-player{color:#fff;font-size:0.88rem;font-weight:700;padding:2px 0}
+  .group-summary-avg{color:rgba(255,255,255,0.55);font-size:0.78rem;margin-top:5px;font-weight:600}
+  .day-picker{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+  .date-input{background:rgba(0,0,0,0.3);border:1.5px solid rgba(255,255,255,0.2);border-radius:10px;color:#fff;padding:10px 14px;font-size:0.95rem;font-family:'DM Sans',sans-serif;font-weight:600;width:100%;box-sizing:border-box;color-scheme:dark}
+  .date-input:focus{outline:none;border-color:var(--gold)}
+  .admin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:400;overflow-y:auto;padding:20px 16px 60px}
+  .admin-overlay.open{display:block}
+  .admin-panel{max-width:600px;margin:0 auto}
+  .admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;border-bottom:2px solid var(--gold);padding-bottom:12px}
+  .admin-title-big{font-family:'Bebas Neue',cursive;font-size:2rem;color:var(--gold);letter-spacing:3px}
+  .admin-close{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:8px 18px;border-radius:8px;font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1px;cursor:pointer}
+  .admin-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .admin-tab{background:rgba(0,0,0,0.3);border:1.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:8px 16px;border-radius:8px;font-family:'Bebas Neue',cursive;font-size:1rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s}
+  .admin-tab.active{background:rgba(212,168,67,0.2);border-color:var(--gold);color:var(--gold-light)}
+  .admin-section-title{font-family:'Bebas Neue',cursive;font-size:1.2rem;color:var(--gold-light);letter-spacing:2px;margin-bottom:10px;border-left:3px solid var(--gold);padding-left:10px}
+  .log-entry{padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.07)}
+  .log-text{color:#fff;font-weight:600;font-size:0.85rem}
+  .log-ts{color:rgba(255,255,255,0.35);font-size:0.72rem;margin-top:2px}
+  .admin-table{width:100%;border-collapse:collapse;font-size:0.83rem}
+  .admin-table th{color:var(--gold-light);font-family:'Bebas Neue',cursive;letter-spacing:1px;padding:8px 6px;border-bottom:1px solid rgba(212,168,67,0.3);text-align:left;font-size:0.9rem}
+  .admin-table td{color:#fff;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.06)}
+  .admin-table tr:last-child td{border-bottom:none}
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <header>
@@ -104,6 +152,37 @@
 <div class="screen active" id="screen-0">
   <div class="screen-title">Who's Playing?</div>
   <div class="screen-sub">TAP TO SELECT · SCROLL TO SEE ALL</div>
+  <div class="field-label">Golf Course</div>
+  <div class="course-picker">
+    <button class="course-btn" onclick="selectCourse(this,'Indian Hills',4)">Indian Hills</button>
+    <button class="course-btn" onclick="selectCourse(this,'Gator Trace',3)">Gator Trace</button>
+    <button class="course-btn" onclick="selectCourse(this,'Fairwinds',4)">Fairwinds</button>
+    <button class="course-btn" onclick="selectCourse(this,'Meadowwood',4)">Meadowwood</button>
+    <button class="course-btn" onclick="selectCourse(this,'Other',4)">Other</button>
+  </div>
+  <div class="field-label" style="margin-top:16px">First Tee Time</div>
+  <div class="drum-wrap">
+    <div class="drum-picker">
+      <div class="drum-col" id="drum-hour"></div>
+      <div class="drum-sep">:</div>
+      <div class="drum-col" id="drum-min"></div>
+      <div class="drum-col" id="drum-ampm"></div>
+    </div>
+    <div class="drum-hl"></div>
+  </div>
+  <div class="field-label" style="margin-top:16px">Day of Week</div>
+  <div class="day-picker" id="day-picker">
+    <button class="course-btn" onclick="setEventDay(this,'Monday')">Mon</button>
+    <button class="course-btn selected" onclick="setEventDay(this,'Tuesday')">Tue</button>
+    <button class="course-btn" onclick="setEventDay(this,'Wednesday')">Wed</button>
+    <button class="course-btn" onclick="setEventDay(this,'Thursday')">Thu</button>
+    <button class="course-btn" onclick="setEventDay(this,'Friday')">Fri</button>
+    <button class="course-btn" onclick="setEventDay(this,'Saturday')">Sat</button>
+    <button class="course-btn" onclick="setEventDay(this,'Sunday')">Sun</button>
+  </div>
+  <div class="field-label" style="margin-top:16px">Event Date</div>
+  <input class="date-input" type="date" id="event-date-input" value="2026-04-05" onchange="eventDate=this.value">
+  <div class="field-label" style="margin-top:16px">Players</div>
   <div class="count-badge" id="select-count">0 selected</div>
   <div class="player-grid" id="player-grid"></div>
   <button class="btn btn-primary" onclick="goToReview()" style="margin-top:20px">Review Lineup →</button>
@@ -112,8 +191,15 @@
 
 <div class="screen" id="screen-1">
   <div class="screen-title">Lineup Review</div>
-  <div class="screen-sub">ADJUST HANDICAPS · ADD OR REMOVE PLAYERS</div>
+  <div class="screen-sub">ADJUST HANDICAPS · ASSIGN GROUPS · ADD OR REMOVE PLAYERS</div>
+  <div id="round-info" style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,168,67,0.3);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:none">
+    <div id="round-info-course" style="color:var(--gold-light);font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:1px"></div>
+    <div id="round-info-time" style="color:rgba(255,255,255,0.7);font-size:0.82rem;font-weight:600;margin-top:2px"></div>
+  </div>
+  <div class="field-label">Assign Groups — select a group, then tap players</div>
+  <div class="group-selector-bar" id="group-selector"></div>
   <div class="roster-list" id="review-list"></div>
+  <div id="group-summary" style="display:none;margin-top:16px"></div>
   <div style="margin-top:16px">
     <button class="btn btn-secondary" onclick="openAddModal()">+ Add Player</button>
     <button class="btn btn-secondary" onclick="goBack(0)">← Change Selections</button>
@@ -192,7 +278,36 @@
 
 <div id="toast"></div>
 
+<div class="admin-overlay" id="admin-overlay">
+  <div class="admin-panel">
+    <div class="admin-header">
+      <div class="admin-title-big">⛳ Admin Panel</div>
+      <button class="admin-close" onclick="closeAdmin()">✕ Close</button>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="showAdminTab('log',this)">Change Log</button>
+      <button class="admin-tab" onclick="showAdminTab('winnings',this)">Winnings</button>
+      <button class="admin-tab" onclick="showAdminTab('hcpstats',this)">HCP Stats</button>
+    </div>
+    <div id="admin-tab-content"></div>
+  </div>
+</div>
+
 <script>
+const firebaseConfig={
+  apiKey:"AIzaSyCxfowtpJ780K1rydk8QYrXX0zWbKaTdvo",
+  authDomain:"kevgolf-2cbb3.firebaseapp.com",
+  projectId:"kevgolf-2cbb3",
+  storageBucket:"kevgolf-2cbb3.firebasestorage.app",
+  messagingSenderId:"744259468648",
+  appId:"1:744259468648:web:9e3854b072b76ae8beaadd"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+const rosterDoc=db.collection('kevgolf').doc('roster');
+const historyDoc=db.collection('kevgolf').doc('history');
+const winningsDoc=db.collection('kevgolf').doc('winnings');
+
 const origNames=["Jon Anderson","Bill Baldwin","Craig Barbret","Bruce Broekhuizen","Kevin Bryan","Bob Camirie","Phil Colson","Randy Corona","Brad Dunham","Jason Eads","Jim Eads","Andy Eggers","Gene Eeingenburg","Dale Fraaza","Jimmy Friese","Wally Fulton","Kimmer Gaites","Perry Gould","Greg Gutchigan","Rod Kennedy","Bill Laubenstein","Ed Lawlor","Greg Leisgang","Tom Manuel","Kevin McGuire","Terry Noble","Patrick Reilly","Elvis Rodriguez","Cliff Rupnow","Fred Russo","Dennis Sarlo","Tim Sax","Bob Staples","Chuck Starcevich","Loren Van Wyk","Bruce Vick","Larry Vollett","Al Wolden","Eli Wettenstein","Matt Winfree","Jim Yeazle","Anthony Starcevich","Steve Nardiello"];
 
 let roster={
@@ -257,28 +372,157 @@ const payouts={
 
 let selected=new Set(),activePlayers=[],ctpCount=2,ctpWinners={};
 let grossScores={},lastResults=null,proposedHcps={},workingHcps={};
+let selectedCourse='',teeHour=8,teeMin=0,teeAMPM='AM';
+let eventDay='Tuesday',eventDate='2026-04-05';
+const DRUM_H=44;
+let playerGroups={},activeGroup=0,numGroups=0;
+let secretSeq=[],secretTimer=null;
+const SECRET_CODE=[4,3,2,1];
+const GROUP_COLORS=[null,
+  {bg:'rgba(255,110,110,0.3)',border:'rgba(255,110,110,0.75)',btn:'rgba(200,70,70,0.75)'},
+  {bg:'rgba(255,170,60,0.3)',border:'rgba(255,170,60,0.75)',btn:'rgba(200,130,30,0.75)'},
+  {bg:'rgba(230,215,50,0.3)',border:'rgba(230,215,50,0.75)',btn:'rgba(175,160,20,0.75)'},
+  {bg:'rgba(60,205,105,0.3)',border:'rgba(60,205,105,0.75)',btn:'rgba(30,155,75,0.75)'},
+  {bg:'rgba(80,165,255,0.3)',border:'rgba(80,165,255,0.75)',btn:'rgba(40,110,210,0.75)'}
+];
+const GROUP_NAMES=[,'1','2','3','4','5'];
 
 const VERSION = '2.1';
 
 function init(){
-  // Clear old localStorage if version doesn't match
   try{
-    const v = localStorage.getItem('kevgolf_version');
-    if(v !== VERSION){
-      localStorage.clear();
-      localStorage.setItem('kevgolf_version', VERSION);
-    }
+    const v=localStorage.getItem('kevgolf_version');
+    if(v!==VERSION){localStorage.clear();localStorage.setItem('kevgolf_version',VERSION);}
   }catch(e){}
   try{const s=localStorage.getItem('kevgolf_hcps');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(roster[n])roster[n].hcp=d[n];});}}catch(e){}
   try{const s=localStorage.getItem('kevgolf_emails');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(roster[n])roster[n].email=d[n];});}}catch(e){}
   try{const s=localStorage.getItem('kevgolf_newplayers');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(!roster[n])roster[n]=d[n];});}}catch(e){}
-  loadSelections();buildPlayerGrid();updateDots(0);
+  loadSelections();buildPlayerGrid();updateDots(0);initDrums();
+  // Live sync from Firestore
+  rosterDoc.onSnapshot(doc=>{
+    if(!doc.exists)return;
+    const data=doc.data();
+    if(!data.players)return;
+    Object.keys(data.players).forEach(n=>{
+      if(!roster[n])roster[n]={hcp:0,email:''};
+      roster[n].hcp=data.players[n].hcp??roster[n].hcp;
+      roster[n].email=data.players[n].email??roster[n].email;
+    });
+    buildPlayerGrid();
+  },err=>console.warn('Firestore sync error:',err));
+}
+
+function selectCourse(btn,name,ctp){
+  selectedCourse=name;ctpCount=ctp;
+  document.querySelectorAll('.course-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function initDrums(){
+  const hours=['1','2','3','4','5','6','7','8','9','10','11','12'];
+  const mins=['00','05','10','15','20','25','30','35','40','45','50','55','60'];
+  const ampms=['AM','PM'];
+  buildDrum('drum-hour',hours,7,v=>{teeHour=parseInt(v);});
+  buildDrum('drum-min',mins,0,v=>{teeMin=parseInt(v);});
+  buildDrum('drum-ampm',ampms,0,v=>{teeAMPM=v;});
+}
+
+function buildDrum(id,items,defaultIdx,setter){
+  const col=document.getElementById(id);
+  col.innerHTML='';
+  const pad=document.createElement('div');pad.style.height=DRUM_H+'px';
+  col.appendChild(pad.cloneNode(false));
+  items.forEach(val=>{
+    const d=document.createElement('div');d.className='drum-item';d.textContent=val;col.appendChild(d);
+  });
+  col.appendChild(pad.cloneNode(false));
+  requestAnimationFrame(()=>{col.scrollTop=defaultIdx*DRUM_H;refreshDrumHighlight(col,defaultIdx);});
+  setter(items[defaultIdx]);
+  // Slow touch scroll (half speed)
+  let touchY=0,touchScroll=0,touching=false,t;
+  col.addEventListener('touchstart',e=>{touching=true;touchY=e.touches[0].clientY;touchScroll=col.scrollTop;clearTimeout(t);},{passive:true});
+  col.addEventListener('touchmove',e=>{
+    const dy=(touchY-e.touches[0].clientY)*0.5;
+    col.scrollTop=touchScroll+dy;
+    refreshDrumHighlight(col,Math.min(Math.max(Math.round(col.scrollTop/DRUM_H),0),items.length-1));
+    e.preventDefault();
+  },{passive:false});
+  col.addEventListener('touchend',()=>{
+    touching=false;
+    const idx=Math.min(Math.max(Math.round(col.scrollTop/DRUM_H),0),items.length-1);
+    col.scrollTo({top:idx*DRUM_H,behavior:'smooth'});
+    setter(items[idx]);refreshDrumHighlight(col,idx);
+  });
+  // Mouse-wheel scroll (desktop)
+  col.addEventListener('scroll',()=>{
+    if(touching)return;
+    const idx=Math.min(Math.max(Math.round(col.scrollTop/DRUM_H),0),items.length-1);
+    refreshDrumHighlight(col,idx);
+    clearTimeout(t);
+    t=setTimeout(()=>{
+      const snapped=Math.min(Math.max(Math.round(col.scrollTop/DRUM_H),0),items.length-1);
+      setter(items[snapped]);refreshDrumHighlight(col,snapped);
+    },150);
+  });
+}
+
+function refreshDrumHighlight(col,idx){
+  col.querySelectorAll('.drum-item').forEach((el,i)=>el.classList.toggle('drum-center',i===idx));
+}
+
+function getTeeTime(){
+  return `${teeHour}:${String(teeMin).padStart(2,'0')} ${teeAMPM}`;
+}
+
+function setEventDay(btn,day){
+  eventDay=day;
+  document.querySelectorAll('#day-picker .course-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function getEventDateLabel(){
+  if(!eventDate)return '';
+  const[y,m,d]=eventDate.split('-');
+  return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+}
+
+function logChange(type,name,extra={}){
+  const entry={type,name,ts:new Date().toISOString(),...extra};
+  historyDoc.update({entries:firebase.firestore.FieldValue.arrayUnion(entry)})
+    .catch(()=>historyDoc.set({entries:[entry]}));
+}
+
+function updateHcp(name,newVal,oldVal){
+  workingHcps[name]=newVal;roster[name].hcp=newVal;saveAllRosterData();
+  if(newVal!==oldVal)logChange('hcp_change',name,{oldHcp:oldVal,newHcp:newVal});
+}
+
+function saveRoundWinnings(){
+  if(!lastResults)return;
+  const year=new Date().getFullYear().toString();
+  db.runTransaction(async tx=>{
+    const doc=await tx.get(winningsDoc);
+    const data=doc.exists?doc.data():{players:{}};
+    if(!data.players)data.players={};
+    Object.entries(lastResults.playerPayout).forEach(([n,amt])=>{
+      if(amt>0){if(!data.players[n])data.players[n]={};data.players[n][year]=(data.players[n][year]||0)+amt;}
+    });
+    for(let h=1;h<=ctpCount;h++){
+      const w=ctpWinners[h];
+      if(w&&lastResults.perHoleCTP>0){if(!data.players[w])data.players[w]={};data.players[w][year]=(data.players[w][year]||0)+lastResults.perHoleCTP;}
+    }
+    tx.set(winningsDoc,data);
+  }).catch(e=>console.warn('Winnings save error:',e));
 }
 
 function saveAllRosterData(){
   try{const s={};Object.keys(roster).forEach(n=>{s[n]=roster[n].hcp;});localStorage.setItem('kevgolf_hcps',JSON.stringify(s));}catch(e){}
   try{const s={};Object.keys(roster).forEach(n=>{if(roster[n].email)s[n]=roster[n].email;});localStorage.setItem('kevgolf_emails',JSON.stringify(s));}catch(e){}
   try{const s={};Object.keys(roster).forEach(n=>{if(!origNames.includes(n))s[n]=roster[n];});localStorage.setItem('kevgolf_newplayers',JSON.stringify(s));}catch(e){}
+  // Sync to Firestore so all users get the update
+  const players={};
+  Object.keys(roster).forEach(n=>{players[n]={hcp:roster[n].hcp,email:roster[n].email||''};});
+  rosterDoc.set({players}).catch(e=>console.warn('Firestore save error:',e));
 }
 
 function buildPlayerGrid(){
@@ -311,9 +555,27 @@ function loadSelections(){try{const s=localStorage.getItem('kevgolf_selected');i
 
 function copyLineup(){
   const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  let txt=`KEVGOLF — PLAYER LIST\n${date}\n`+'='.repeat(36)+'\n\n'+`${selected.size} Players:\n\n`;
-  Array.from(selected).sort().forEach((n,i)=>{txt+=`${String(i+1).padEnd(3)} ${n.padEnd(24)} HCP ${roster[n].hcp}\n`;});
-  txt+='\n'+'='.repeat(36)+'\n';
+  let txt=`KEVGOLF — PLAYER LIST\n${date}\n`+'='.repeat(36)+'\n\n';
+  if(selectedCourse||eventDate)txt+=`Course: ${selectedCourse||'TBD'}\n${eventDay}, ${getEventDateLabel()}  ·  Tee Time: ${getTeeTime()}\n\n`;
+  const players=activePlayers.length?activePlayers:Array.from(selected).sort();
+  const grouped=players.length&&players.some(n=>playerGroups[n]);
+  if(grouped){
+    for(let g=1;g<=numGroups;g++){
+      const grpPlayers=players.filter(n=>playerGroups[n]===g);
+      if(!grpPlayers.length)continue;
+      const avgHcp=(grpPlayers.reduce((s,n)=>s+workingHcps[n],0)/grpPlayers.length).toFixed(1);
+      txt+=`── Group ${g} (Avg HCP: ${avgHcp}) ──\n`;
+      grpPlayers.forEach(n=>{txt+=`   ${n.padEnd(24)} HCP ${workingHcps[n]}\n`;});
+      txt+='\n';
+    }
+    const unassigned=players.filter(n=>!playerGroups[n]);
+    if(unassigned.length){txt+=`── Unassigned ──\n`;unassigned.forEach(n=>{txt+=`   ${n.padEnd(24)} HCP ${workingHcps[n]||roster[n].hcp}\n`;});txt+='\n';}
+  }else{
+    txt+=`${players.length} Players:\n\n`;
+    players.forEach((n,i)=>{txt+=`${String(i+1).padEnd(3)} ${n.padEnd(24)} HCP ${roster[n].hcp}\n`;});
+    txt+='\n';
+  }
+  txt+='='.repeat(36)+'\n';
   navigator.clipboard.writeText(txt).then(()=>toast('✓ Player list copied!')).catch(()=>{
     const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
     document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Player list copied!');
@@ -338,27 +600,105 @@ function goToReview(){
   if(selected.size<3){toast('Select at least 3 players');return;}
   activePlayers=Array.from(selected).sort();
   workingHcps={};activePlayers.forEach(n=>{workingHcps[n]=roster[n].hcp;});
-  buildReviewList();showScreen(1);
+  playerGroups={};activeGroup=0;numGroups=Math.ceil(activePlayers.length/4);
+  const ri=document.getElementById('round-info');
+  if(selectedCourse||eventDate){
+    document.getElementById('round-info-course').textContent=selectedCourse||'Course TBD';
+    document.getElementById('round-info-time').textContent=
+      `${eventDay}, ${getEventDateLabel()}  ·  Tee Time: ${getTeeTime()}`;
+    ri.style.display='block';
+  }else{ri.style.display='none';}
+  buildReviewList();buildGroupSelector();showScreen(1);
 }
 
 function buildReviewList(){
   const list=document.getElementById('review-list');
   list.innerHTML='';
   activePlayers.forEach(name=>{
+    const g=playerGroups[name]||0;
     const row=document.createElement('div');
-    row.className='roster-item';
+    row.className='roster-item'+(g?` g${g}`:'');
+    const badge=g
+      ?`<div class="group-badge" style="background:${GROUP_COLORS[g].btn}">G${g}</div>`
+      :`<div class="group-badge" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3)">—</div>`;
     row.innerHTML=`<div class="rname">${name}</div>
-      <input class="hcp-input" type="number" min="0" max="54" value="${workingHcps[name]}"
-        onchange="workingHcps['${name}']=parseFloat(this.value)||0;roster['${name}'].hcp=workingHcps['${name}'];saveAllRosterData()" aria-label="handicap">
-      <button class="remove-btn" onclick="removeFromLineup('${name}')">Remove</button>`;
+      <input class="hcp-input" type="number" min="0" max="54" value="${workingHcps[name]}" data-prev="${workingHcps[name]}"
+        onchange="updateHcp('${name}',parseFloat(this.value)||0,parseFloat(this.dataset.prev)||0);this.dataset.prev=this.value" aria-label="handicap">
+      ${badge}
+      <button class="remove-btn" onclick="removeFromLineup('${name}')">✕</button>`;
+    row.addEventListener('click',e=>{
+      if(e.target.tagName==='INPUT'||e.target.classList.contains('remove-btn'))return;
+      assignGroup(name);
+    });
     list.appendChild(row);
   });
 }
 
 function removeFromLineup(name){
   activePlayers=activePlayers.filter(n=>n!==name);
-  selected.delete(name);delete workingHcps[name];
-  buildReviewList();buildPlayerGrid();toast(`Removed ${name}`);
+  selected.delete(name);delete workingHcps[name];delete playerGroups[name];
+  numGroups=Math.ceil(activePlayers.length/4);
+  buildReviewList();buildGroupSelector();buildPlayerGrid();checkAllGrouped();toast(`Removed ${name}`);
+}
+
+function buildGroupSelector(){
+  const bar=document.getElementById('group-selector');
+  bar.innerHTML='';
+  for(let g=1;g<=numGroups;g++){
+    const c=GROUP_COLORS[g];
+    const count=Object.values(playerGroups).filter(x=>x===g).length;
+    const btn=document.createElement('button');
+    btn.className='grp-btn'+(activeGroup===g?' grp-active':'');
+    btn.style.background=c.btn;
+    btn.style.borderColor=activeGroup===g?'#fff':c.border;
+    btn.innerHTML=`Group ${g}<span class="grp-count">${count}/4</span>`;
+    btn.onclick=()=>selectGroup(g);
+    bar.appendChild(btn);
+  }
+}
+
+function selectGroup(g){
+  activeGroup=(activeGroup===g)?0:g;
+  buildGroupSelector();
+  secretSeq.push(g);
+  if(secretSeq.length>SECRET_CODE.length)secretSeq.shift();
+  clearTimeout(secretTimer);
+  secretTimer=setTimeout(()=>{secretSeq=[];},5000);
+  if(secretSeq.join(',')===SECRET_CODE.join(',')){secretSeq=[];showAdminWindow();}
+}
+
+function assignGroup(name){
+  if(activeGroup===0){toast('Select a group first');return;}
+  if(playerGroups[name]===activeGroup){delete playerGroups[name];buildReviewList();buildGroupSelector();checkAllGrouped();return;}
+  const count=Object.values(playerGroups).filter(x=>x===activeGroup).length;
+  if(count>=4){toast(`Group ${activeGroup} is full`);return;}
+  playerGroups[name]=activeGroup;
+  const newCount=Object.values(playerGroups).filter(x=>x===activeGroup).length;
+  if(newCount===4){try{navigator.vibrate&&navigator.vibrate(250);}catch(e){}}
+  buildReviewList();buildGroupSelector();checkAllGrouped();
+}
+
+function checkAllGrouped(){
+  const allAssigned=activePlayers.length>0&&activePlayers.every(n=>playerGroups[n]);
+  const div=document.getElementById('group-summary');
+  if(allAssigned){renderGroupSummary();div.style.display='block';}
+  else{div.style.display='none';}
+}
+
+function renderGroupSummary(){
+  const div=document.getElementById('group-summary');
+  div.innerHTML='<div class="field-label" style="margin-bottom:10px">Group Summary</div>';
+  for(let g=1;g<=numGroups;g++){
+    const c=GROUP_COLORS[g];
+    const players=activePlayers.filter(n=>playerGroups[n]===g);
+    const avgHcp=players.length>0?(players.reduce((s,n)=>s+workingHcps[n],0)/players.length).toFixed(1):'—';
+    const card=document.createElement('div');
+    card.className='group-summary-card';
+    card.style.background=c.bg;card.style.borderColor=c.border;
+    const rows=players.map(n=>`<div class="group-summary-player">${n} <span style="color:rgba(255,255,255,0.5);font-weight:400">HCP ${workingHcps[n]}</span></div>`).join('');
+    card.innerHTML=`<div class="group-summary-title">Group ${g}</div>${rows}<div class="group-summary-avg">Avg Handicap: ${avgHcp}</div>`;
+    div.appendChild(card);
+  }
 }
 
 function goToScores(){buildScoreList();showScreen(2);}
@@ -398,8 +738,8 @@ function buildScoreList(){
     const row=document.createElement('div');
     row.className='score-row';
     row.innerHTML=`<div style="flex:1"><div class="sname">${name}</div><div class="shcp">HCP ${hcp}</div></div>
-      <input class="gross-input" id="gross-${sid}" type="number" min="50" max="150"
-        placeholder="Gross" value="${prev}" oninput="updateNet('${name}',this.value)">
+      <input class="gross-input" id="gross-${sid}" type="number" min="0" max="150"
+        placeholder="Gross" value="${prev||hcp}" oninput="updateNet('${name}',this.value)">
       <div class="net-display" id="net-${sid}">${prev?'Net '+(prev-hcp).toFixed(1):'—'}</div>`;
     list.appendChild(row);
   });
@@ -419,7 +759,7 @@ function calcResults(){
   if(scored.length<2){toast('Enter at least 2 scores');return;}
   const count=activePlayers.length;
   const totalPot=count*15,ctpPot=count*5,placePot=totalPot-ctpPot;
-  const perHoleCTP=ctpCount>0?ctpPot/ctpCount:0;
+  const perHoleCTP=ctpCount>0?Math.floor(ctpPot/ctpCount):0;
   const nets={};scored.forEach(n=>{nets[n]=grossScores[n]-workingHcps[n];});
   const sorted=Object.entries(nets).sort((a,b)=>b[1]-a[1]);
   const groups={};
@@ -431,7 +771,7 @@ function calcResults(){
     const tied=groups[net.toFixed(1)];
     const slice=place_payouts.slice(place,place+tied.length);
     const sum=slice.reduce((a,b)=>a+b,0);
-    const each=tied.length>0?sum/tied.length:0;
+    const each=tied.length>0?Math.floor(sum/tied.length):0;
     tied.forEach(n=>{playerPayout[n]=each;});place+=tied.length;
   });
   proposedHcps={};
@@ -452,7 +792,7 @@ function renderResults(r){
     <div class="pool-total">$${totalPot}</div>
     <div class="pool-sub">TOTAL POT · ${count} PLAYERS × $15</div>
     <div class="pot-row"><span class="pot-label">Place Payouts</span><span class="pot-value">$${placePot}</span></div>
-    <div class="pot-row"><span class="pot-label">CTP Pool (${ctpCount} holes)</span><span class="pot-value">$${ctpPot} · $${perHoleCTP.toFixed(2)}/hole</span></div>`;
+    <div class="pot-row"><span class="pot-label">CTP Pool (${ctpCount} holes)</span><span class="pot-value">$${ctpPot} · $${perHoleCTP}/hole</span></div>`;
   const pr=document.getElementById('place-results');pr.innerHTML='';
   let place=1;
   uniqueNets.forEach(net=>{
@@ -463,7 +803,7 @@ function renderResults(r){
       const label=tied.length>1?`<span class="tied-label">T</span>${place}`:place;
       row.innerHTML=`<div class="place-num">${label}</div>
         <div><div class="result-name">${name}</div><div class="result-net">Net ${net.toFixed(1)}</div></div>
-        <div class="result-payout">$${each.toFixed(2)}</div>`;
+        <div class="result-payout">$${each}</div>`;
       pr.appendChild(row);
     });
     place+=tied.length;
@@ -477,7 +817,7 @@ function renderResults(r){
       const row=document.createElement('div');row.className='result-row';
       row.innerHTML=`<div class="place-num" style="font-size:1rem;color:var(--gold-light)">H${h}</div>
         <div class="result-name">${winner}</div>
-        <div class="result-payout">${winner!=='—'?'$'+perHoleCTP.toFixed(2):'—'}</div>`;
+        <div class="result-payout">${winner!=='—'?'$'+perHoleCTP:'—'}</div>`;
       cr.appendChild(row);
     }
   }
@@ -495,8 +835,13 @@ function renderResults(r){
 
 function applyHandicaps(apply){
   if(apply){
-    activePlayers.forEach(n=>{roster[n].hcp=proposedHcps[n];});
+    activePlayers.forEach(n=>{
+      const oldH=workingHcps[n],newH=proposedHcps[n];
+      if(newH!==oldH)logChange('hcp_change',n,{oldHcp:oldH,newHcp:newH,source:'round_end'});
+      roster[n].hcp=newH;
+    });
     saveAllRosterData();
+    saveRoundWinnings();
     toast('✓ New handicaps saved!');
   }else{toast('Handicaps unchanged');}
 }
@@ -506,6 +851,7 @@ function copyResults(){
   const{count,totalPot,ctpPot,placePot,perHoleCTP,nets,groups,uniqueNets,playerPayout}=lastResults;
   const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   let txt=`KEVGOLF — RESULTS\n${date}\n`+'='.repeat(36)+'\n\n';
+  if(selectedCourse)txt+=`COURSE: ${selectedCourse}  |  TEE TIME: ${getTeeTime()}\n`;
   txt+=`PLAYERS: ${count}  |  TOTAL POT: $${totalPot}\nPlace Pool: $${placePot}  |  CTP Pool: $${ctpPot}\n\n`;
   txt+='── STANDINGS ──\n';
   let place=1;
@@ -514,12 +860,12 @@ function copyResults(){
     const each=playerPayout[tied[0]];
     tied.forEach(name=>{
       const prefix=tied.length>1?`T${place}`:`${place} `;
-      txt+=`${prefix.padEnd(3)} ${name.padEnd(22)} Net ${net.toFixed(1).padStart(5)}   $${each.toFixed(2)}\n`;
+      txt+=`${prefix.padEnd(3)} ${name.padEnd(22)} Net ${net.toFixed(1).padStart(5)}   $${each}\n`;
     });place+=tied.length;
   });
   txt+='\n── CLOSEST TO PIN ──\n';
   if(ctpCount===0){txt+='No CTP holes this round\n';}
-  else{for(let h=1;h<=ctpCount;h++){const w=ctpWinners[h]||'—';txt+=`Hole ${h}: ${w.padEnd(22)} $${perHoleCTP.toFixed(2)}\n`;}}
+  else{for(let h=1;h<=ctpCount;h++){const w=ctpWinners[h]||'—';txt+=`Hole ${h}: ${w.padEnd(22)} $${perHoleCTP}\n`;}}
   txt+='\n── HANDICAP UPDATES ──\n';
   activePlayers.slice().sort().forEach(name=>{
     const oldH=workingHcps[name],newH=proposedHcps[name];
@@ -539,7 +885,9 @@ function newRound(){
   try{localStorage.removeItem('kevgolf_selected');}catch(e){}
   activePlayers=[];ctpWinners={};grossScores={};ctpCount=2;
   lastResults=null;proposedHcps={};workingHcps={};
-  buildPlayerGrid();showScreen(0);
+  selectedCourse='';playerGroups={};activeGroup=0;numGroups=0;
+  document.querySelectorAll('.course-btn').forEach(b=>b.classList.remove('selected'));
+  buildPlayerGrid();initDrums();showScreen(0);
 }
 
 function openAddModal(){
@@ -587,6 +935,7 @@ function addNewPlayer(){
   const email=document.getElementById('new-email').value.trim()||null;
   if(!name){toast('Enter a name');return;}
   roster[name]={hcp,email};
+  logChange('player_added',name,{hcp,email:email||''});
   saveAllRosterData();
   addFromRoster(name);
 }
@@ -595,6 +944,97 @@ let toastTimer;
 function toast(msg){
   const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+function showAdminWindow(){
+  document.getElementById('admin-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  showAdminTab('log',document.querySelector('.admin-tab'));
+}
+
+function closeAdmin(){
+  document.getElementById('admin-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function showAdminTab(tab,btn){
+  document.querySelectorAll('.admin-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const c=document.getElementById('admin-tab-content');
+  c.innerHTML='<div style="color:rgba(255,255,255,0.4);text-align:center;padding:40px">Loading...</div>';
+  if(tab==='log')loadAdminLog();
+  else if(tab==='winnings')loadAdminWinnings();
+  else if(tab==='hcpstats')loadAdminHcpStats();
+}
+
+function loadAdminLog(){
+  historyDoc.get().then(doc=>{
+    const c=document.getElementById('admin-tab-content');
+    const entries=doc.exists&&doc.data().entries?[...doc.data().entries].reverse():[];
+    if(!entries.length){c.innerHTML='<div style="color:rgba(255,255,255,0.4);text-align:center;padding:40px">No history yet</div>';return;}
+    c.innerHTML='<div class="admin-section-title">Change Log</div><div id="log-list"></div>';
+    const list=document.getElementById('log-list');
+    entries.forEach(e=>{
+      const ts=new Date(e.ts).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+      let text='';
+      if(e.type==='player_added')text=`+ Added: ${e.name} (HCP ${e.hcp}${e.email?' · '+e.email:''})`;
+      else if(e.type==='hcp_change')text=`✏ ${e.name}: HCP ${e.oldHcp} → ${e.newHcp}${e.source==='round_end'?' (round end)':''}`;
+      else if(e.type==='email_change')text=`✉ ${e.name}: email updated`;
+      else text=`${e.type}: ${e.name}`;
+      const div=document.createElement('div');div.className='log-entry';
+      div.innerHTML=`<div class="log-text">${text}</div><div class="log-ts">${ts}</div>`;
+      list.appendChild(div);
+    });
+  }).catch(()=>{document.getElementById('admin-tab-content').innerHTML='<div style="color:#ff6666;text-align:center;padding:40px">Error loading history</div>';});
+}
+
+function loadAdminWinnings(){
+  const year=new Date().getFullYear().toString();
+  winningsDoc.get().then(doc=>{
+    const c=document.getElementById('admin-tab-content');
+    if(!doc.exists||!doc.data().players){c.innerHTML=`<div style="color:rgba(255,255,255,0.4);text-align:center;padding:40px">No winnings for ${year} yet</div>`;return;}
+    const rows=Object.entries(doc.data().players)
+      .map(([name,yrs])=>({name,total:yrs[year]||0}))
+      .filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+    if(!rows.length){c.innerHTML=`<div style="color:rgba(255,255,255,0.4);text-align:center;padding:40px">No winnings for ${year} yet</div>`;return;}
+    c.innerHTML=`<div class="admin-section-title">${year} Winnings</div>
+      <table class="admin-table"><thead><tr><th>#</th><th>Player</th><th>Total Won</th></tr></thead><tbody id="w-tbody"></tbody></table>`;
+    const tb=document.getElementById('w-tbody');
+    rows.forEach((p,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${i+1}</td><td>${p.name}</td><td style="color:#4cd964;font-weight:700">$${p.total}</td>`;
+      tb.appendChild(tr);
+    });
+  }).catch(()=>{document.getElementById('admin-tab-content').innerHTML='<div style="color:#ff6666;text-align:center;padding:40px">Error loading winnings</div>';});
+}
+
+function loadAdminHcpStats(){
+  historyDoc.get().then(doc=>{
+    const c=document.getElementById('admin-tab-content');
+    const hcpHistory={};
+    Object.keys(roster).forEach(n=>{hcpHistory[n]=[roster[n].hcp];});
+    if(doc.exists&&doc.data().entries){
+      doc.data().entries.forEach(e=>{
+        if(e.type==='hcp_change'){
+          if(!hcpHistory[e.name])hcpHistory[e.name]=[];
+          hcpHistory[e.name].push(e.oldHcp,e.newHcp);
+        }
+      });
+    }
+    const stats=Object.keys(hcpHistory).map(name=>{
+      const vals=[...new Set(hcpHistory[name])];
+      return{name,current:roster[name]?roster[name].hcp:'—',low:Math.min(...vals),high:Math.max(...vals),changed:Math.min(...vals)!==Math.max(...vals)};
+    }).filter(s=>s.changed).sort((a,b)=>a.name.localeCompare(b.name));
+    if(!stats.length){c.innerHTML='<div style="color:rgba(255,255,255,0.4);text-align:center;padding:40px">No handicap changes recorded yet</div>';return;}
+    c.innerHTML=`<div class="admin-section-title">Handicap History</div>
+      <table class="admin-table"><thead><tr><th>Player</th><th>Lowest</th><th>Current</th><th>Highest</th></tr></thead><tbody id="h-tbody"></tbody></table>`;
+    const tb=document.getElementById('h-tbody');
+    stats.forEach(s=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${s.name}</td><td style="color:#4cd964;font-weight:700">${s.low}</td><td style="color:var(--gold-light);font-weight:700">${s.current}</td><td style="color:#ff6b6b;font-weight:700">${s.high}</td>`;
+      tb.appendChild(tr);
+    });
+  }).catch(()=>{document.getElementById('admin-tab-content').innerHTML='<div style="color:#ff6666;text-align:center;padding:40px">Error loading stats</div>';});
 }
 
 document.getElementById('add-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});

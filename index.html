@@ -107,6 +107,11 @@
   .roster-item.g3{background:rgba(230,215,50,0.3);border-color:rgba(230,215,50,0.75)}
   .roster-item.g4{background:rgba(60,205,105,0.3);border-color:rgba(60,205,105,0.75)}
   .roster-item.g5{background:rgba(80,165,255,0.3);border-color:rgba(80,165,255,0.75)}
+  .roster-item.g6{background:rgba(180,90,255,0.3);border-color:rgba(180,90,255,0.75)}
+  .roster-item.g7{background:rgba(255,100,200,0.3);border-color:rgba(255,100,200,0.75)}
+  .roster-item.g8{background:rgba(40,210,210,0.3);border-color:rgba(40,210,210,0.75)}
+  .roster-item.g9{background:rgba(200,140,60,0.3);border-color:rgba(200,140,60,0.75)}
+  .roster-item.g10{background:rgba(180,180,180,0.3);border-color:rgba(180,180,180,0.75)}
   .group-badge{font-family:'Bebas Neue',cursive;font-size:0.88rem;padding:3px 8px;border-radius:6px;color:#fff;flex-shrink:0}
   .group-summary-card{border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1.5px solid rgba(255,255,255,0.15)}
   .group-summary-title{font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:1px;color:#fff;margin-bottom:6px}
@@ -367,7 +372,19 @@ const payouts={
   22:[60,50,30,25,20,15,10,10],23:[60,50,35,30,20,15,10,10],
   24:[60,50,35,30,20,15,15,10,5],25:[60,50,40,30,20,15,15,10,10],
   26:[60,55,45,30,20,15,15,10,10],27:[60,55,45,30,20,20,15,10,10,5],
-  28:[60,55,45,35,20,20,15,10,10,10]
+  28:[60,55,45,35,20,20,15,10,10,10],
+  29:[65,55,45,35,25,20,15,10,10,10],
+  30:[65,60,50,35,25,20,15,10,10,10],
+  31:[70,60,50,35,25,20,15,15,10,10],
+  32:[70,65,50,35,30,20,15,15,10,10],
+  33:[75,65,50,40,30,20,15,15,10,10],
+  34:[75,65,55,40,30,20,20,15,10,10],
+  35:[80,65,55,40,30,25,20,15,10,10],
+  36:[80,70,55,40,30,25,20,15,15,10],
+  37:[85,70,55,45,30,25,20,15,15,10],
+  38:[85,70,60,45,30,25,20,20,15,10],
+  39:[90,75,60,45,30,25,20,20,15,10],
+  40:[90,75,60,50,30,25,20,20,15,15]
 };
 
 let selected=new Set(),activePlayers=[],ctpCount=2,ctpWinners={};
@@ -383,9 +400,14 @@ const GROUP_COLORS=[null,
   {bg:'rgba(255,170,60,0.3)',border:'rgba(255,170,60,0.75)',btn:'rgba(200,130,30,0.75)'},
   {bg:'rgba(230,215,50,0.3)',border:'rgba(230,215,50,0.75)',btn:'rgba(175,160,20,0.75)'},
   {bg:'rgba(60,205,105,0.3)',border:'rgba(60,205,105,0.75)',btn:'rgba(30,155,75,0.75)'},
-  {bg:'rgba(80,165,255,0.3)',border:'rgba(80,165,255,0.75)',btn:'rgba(40,110,210,0.75)'}
+  {bg:'rgba(80,165,255,0.3)',border:'rgba(80,165,255,0.75)',btn:'rgba(40,110,210,0.75)'},
+  {bg:'rgba(180,90,255,0.3)',border:'rgba(180,90,255,0.75)',btn:'rgba(130,50,200,0.75)'},
+  {bg:'rgba(255,100,200,0.3)',border:'rgba(255,100,200,0.75)',btn:'rgba(200,50,150,0.75)'},
+  {bg:'rgba(40,210,210,0.3)',border:'rgba(40,210,210,0.75)',btn:'rgba(20,155,155,0.75)'},
+  {bg:'rgba(200,140,60,0.3)',border:'rgba(200,140,60,0.75)',btn:'rgba(150,100,30,0.75)'},
+  {bg:'rgba(180,180,180,0.3)',border:'rgba(180,180,180,0.75)',btn:'rgba(120,120,120,0.75)'}
 ];
-const GROUP_NAMES=[,'1','2','3','4','5'];
+const GROUP_NAMES=[,'1','2','3','4','5','6','7','8','9','10'];
 
 const VERSION = '2.1';
 

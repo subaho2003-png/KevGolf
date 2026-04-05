@@ -857,11 +857,7 @@ function renderResults(r){
 
 function applyHandicaps(apply){
   if(apply){
-    activePlayers.forEach(n=>{
-      const oldH=workingHcps[n],newH=proposedHcps[n];
-      if(newH!==oldH)logChange('hcp_change',n,{oldHcp:oldH,newHcp:newH,source:'round_end'});
-      roster[n].hcp=newH;
-    });
+    activePlayers.forEach(n=>{roster[n].hcp=proposedHcps[n];});
     saveAllRosterData();
     saveRoundWinnings();
     toast('✓ New handicaps saved!');

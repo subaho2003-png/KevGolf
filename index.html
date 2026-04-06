@@ -186,7 +186,7 @@
     <button class="course-btn" onclick="setEventDay(this,'Sunday')">Sun</button>
   </div>
   <div class="field-label" style="margin-top:16px">Event Date</div>
-  <input class="date-input" type="date" id="event-date-input" value="2026-04-05" onchange="eventDate=this.value">
+  <input class="date-input" type="date" id="event-date-input" value="2026-04-05" oninput="eventDate=this.value" onchange="eventDate=this.value">
   <div class="field-label" style="margin-top:16px">Players</div>
   <div class="count-badge" id="select-count">0 selected</div>
   <div class="player-grid" id="player-grid"></div>
@@ -623,6 +623,8 @@ function goToReview(){
   activePlayers=Array.from(selected).sort();
   workingHcps={};activePlayers.forEach(n=>{workingHcps[n]=roster[n].hcp;});
   playerGroups={};activeGroup=0;numGroups=Math.ceil(activePlayers.length/4);
+  const dateEl=document.getElementById('event-date-input');
+  if(dateEl&&dateEl.value)eventDate=dateEl.value;
   const ri=document.getElementById('round-info');
   if(selectedCourse||eventDate){
     document.getElementById('round-info-course').textContent=selectedCourse||'Course TBD';

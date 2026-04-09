@@ -910,7 +910,7 @@ function calcResults(){
 }
 
 function renderResults(r){
-  const{count,totalPot,ctpPot,placePot,perHoleCTP,nets,groups,uniqueNets,playerPayout}=r;
+  const{count,totalPot,ctpPot,placePot,perHoleCTP,ctpPerWinner,ctpWinnerCount,nets,groups,uniqueNets,playerPayout}=r;
   document.getElementById('pool-summary').innerHTML=`
     <div class="pool-total">$${totalPot}</div>
     <div class="pool-sub">TOTAL POT · ${count} PLAYERS × $15</div>

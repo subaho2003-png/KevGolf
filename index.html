@@ -255,8 +255,8 @@
     <div class="results-card-header">📋 Handicap Updates</div>
     <div id="hcp-results"></div>
     <div style="padding:12px 16px;display:flex;gap:10px;">
-      <button class="btn btn-success" onclick="applyHandicaps(true)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">✓ Apply New HCPs</button>
-      <button class="btn btn-danger" onclick="applyHandicaps(false)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">✗ Keep Old</button>
+      <button class="btn btn-success" onclick="applyHandicaps(true)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">Change Handicap?</button>
+      <button class="btn btn-secondary" onclick="applyHandicaps(false)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">Save Round Only</button>
     </div>
   </div>
   <button class="btn btn-secondary" onclick="copyResults()" style="margin-top:4px">📋 Copy Results as Text</button>
@@ -964,12 +964,18 @@ function renderResults(r){
 }
 
 function applyHandicaps(apply){
+  saveRoundWinnings();
   if(apply){
-    activePlayers.forEach(n=>{roster[n].hcp=proposedHcps[n];});
+    activePlayers.forEach(n=>{
+      const oldH=workingHcps[n],newH=proposedHcps[n];
+      roster[n].hcp=newH;
+      if(newH!==oldH)logChange('hcp_posted',n,{oldHcp:oldH,newHcp:newH});
+    });
     saveAllRosterData();
-    saveRoundWinnings();
-    toast('✓ New handicaps saved!');
-  }else{toast('Handicaps unchanged');}
+    toast('✓ Handicaps updated & round saved!');
+  }else{
+    toast('✓ Round saved · Handicaps unchanged');
+  }
 }
 
 function copyResults(){
@@ -1107,7 +1113,8 @@ function loadAdminLog(){
       const ts=new Date(e.ts).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
       let text='';
       if(e.type==='player_added')text=`+ Added: ${e.name} (HCP ${e.hcp}${e.email?' · '+e.email:''})`;
-      else if(e.type==='hcp_change')text=`✏ ${e.name}: HCP ${e.oldHcp} → ${e.newHcp}${e.source==='round_end'?' (round end)':''}`;
+      else if(e.type==='hcp_posted')text=`📌 ${e.name}: HCP posted ${e.oldHcp} → ${e.newHcp}`;
+      else if(e.type==='hcp_change')text=`✏ ${e.name}: HCP adjusted ${e.oldHcp} → ${e.newHcp}`;
       else if(e.type==='email_change')text=`✉ ${e.name}: email updated`;
       else text=`${e.type}: ${e.name}`;
       const div=document.createElement('div');div.className='log-entry';
@@ -1186,7 +1193,7 @@ function loadAdminHcpStats(){
     Object.keys(roster).forEach(n=>{hcpHistory[n]=[roster[n].hcp];});
     if(doc.exists&&doc.data().entries){
       doc.data().entries.forEach(e=>{
-        if(e.type==='hcp_change'){
+        if(e.type==='hcp_posted'){
           if(!hcpHistory[e.name])hcpHistory[e.name]=[];
           hcpHistory[e.name].push(e.oldHcp,e.newHcp);
         }
@@ -1207,6 +1214,7 @@ function loadAdminHcpStats(){
     });
   }).catch(()=>{document.getElementById('admin-tab-content').innerHTML='<div style="color:#ff6666;text-align:center;padding:40px">Error loading stats</div>';});
 }
+
 
 document.getElementById('add-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 document.getElementById('email-edit-modal').addEventListener('click',function(e){if(e.target===this)closeEmailEdit();});

@@ -18,7 +18,7 @@
   .screen{display:none;min-height:calc(100vh - 120px);padding:20px 16px 40px;max-width:600px;margin:0 auto}
   .screen.active{display:block}
   .screen-title{font-family:'Bebas Neue',cursive;font-size:1.8rem;color:var(--gold-light);letter-spacing:2px;margin-bottom:6px}
-  .screen-sub{color:rgba(255,255,255,0.85);font-size:0.8rem;letter-spacing:1px;margin-bottom:20px}
+  .screen-sub{color:rgba(255,255,th255,0.85);font-size:0.8rem;letter-spacing:1px;margin-bottom:20px}
   .player-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .player-card{background:rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.18);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;user-select:none}
   .player-card:active{transform:scale(0.96)}
@@ -189,6 +189,7 @@
   <input class="date-input" type="date" id="event-date-input" value="2026-04-05" oninput="eventDate=this.value" onchange="eventDate=this.value">
   <div class="field-label" style="margin-top:16px">Players</div>
   <div class="count-badge" id="select-count">0 selected</div>
+  <div style="color:rgba(255,255,255,0.45);font-size:0.72rem;letter-spacing:1px;margin-bottom:10px;margin-top:4px">Long touch to update email address</div>
   <div class="player-grid" id="player-grid"></div>
   <button class="btn btn-primary" onclick="goToReview()" style="margin-top:20px">Review Lineup →</button>
   <button class="btn btn-secondary" id="copy-lineup-btn" onclick="copyLineup()" style="margin-top:8px;display:none">📋 Copy Player List</button>
@@ -282,6 +283,16 @@
 </div>
 
 <div id="toast"></div>
+
+<div class="modal-overlay" id="email-edit-modal">
+  <div class="modal">
+    <div class="modal-title" id="email-edit-title">Update Email</div>
+    <div class="field-label">Email Address</div>
+    <input class="text-input" id="email-edit-input" type="email" placeholder="email@example.com" autocomplete="off">
+    <button class="btn btn-primary" onclick="saveEmailEdit()" style="margin-top:14px">Save</button>
+    <button class="btn btn-secondary" onclick="closeEmailEdit()" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
 
 <div class="admin-overlay" id="admin-overlay">
   <div class="admin-panel">
@@ -579,10 +590,37 @@ function buildPlayerGrid(){
     const card=document.createElement('div');
     card.className='player-card'+(selected.has(name)?' selected':'');
     card.innerHTML=`<span class="check">✓</span><div class="pname">${name}</div><div class="phcp">HCP: ${roster[name].hcp}</div>`;
-    card.onclick=()=>togglePlayer(name,card);
+    let pressTimer=null,longFired=false;
+    const startPress=()=>{longFired=false;pressTimer=setTimeout(()=>{longFired=true;openEmailEdit(name);},650);};
+    const cancelPress=()=>{clearTimeout(pressTimer);};
+    card.addEventListener('touchstart',startPress,{passive:true});
+    card.addEventListener('touchend',cancelPress);
+    card.addEventListener('touchmove',cancelPress);
+    card.addEventListener('mousedown',startPress);
+    card.addEventListener('mouseup',cancelPress);
+    card.addEventListener('mouseleave',cancelPress);
+    card.onclick=()=>{if(longFired){longFired=false;return;}togglePlayer(name,card);};
     grid.appendChild(card);
   });
   updateCount();
+}
+
+let emailEditTarget='';
+function openEmailEdit(name){
+  emailEditTarget=name;
+  document.getElementById('email-edit-title').textContent=name;
+  document.getElementById('email-edit-input').value=roster[name].email||'';
+  document.getElementById('email-edit-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('email-edit-input').focus(),100);
+}
+function closeEmailEdit(){document.getElementById('email-edit-modal').classList.remove('open');}
+function saveEmailEdit(){
+  const email=document.getElementById('email-edit-input').value.trim();
+  roster[emailEditTarget].email=email;
+  saveAllRosterData();
+  logChange('email_change',emailEditTarget,{email});
+  closeEmailEdit();
+  toast('✓ Email updated');
 }
 
 function togglePlayer(name,card){
@@ -808,8 +846,12 @@ function buildScoreList(){
     const row=document.createElement('div');
     row.className='score-row';
     row.innerHTML=`<div style="flex:1"><div class="sname">${name}</div><div class="shcp">HCP ${hcp}</div></div>
-      <input class="gross-input" id="gross-${sid}" type="number" min="0" max="150"
-        placeholder="Gross" value="${prev||hcp}" oninput="updateNet('${name}',this.value)">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+        <button style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:36px;height:22px;border-radius:5px 5px 0 0;font-size:0.75rem;cursor:pointer;line-height:1" onclick="adjustScore('${name}',1)">▲</button>
+        <input class="gross-input" id="gross-${sid}" type="number" min="0" max="150"
+          placeholder="Gross" value="${prev||hcp}" oninput="updateNet('${name}',this.value)">
+        <button style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:36px;height:22px;border-radius:0 0 5px 5px;font-size:0.75rem;cursor:pointer;line-height:1" onclick="adjustScore('${name}',-1)">▼</button>
+      </div>
       <div class="net-display" id="net-${sid}">${prev?'Net '+(prev-hcp).toFixed(1):'—'}</div>`;
     list.appendChild(row);
   });
@@ -822,6 +864,15 @@ function updateNet(name,val){
   const el=document.getElementById(`net-${safeid(name)}`);
   if(val&&!isNaN(val)){grossScores[name]=parseFloat(val);el.textContent='Net '+(parseFloat(val)-hcp).toFixed(1);}
   else{delete grossScores[name];el.textContent='—';}
+}
+
+function adjustScore(name,delta){
+  const sid=safeid(name);
+  const el=document.getElementById(`gross-${sid}`);
+  const cur=parseFloat(el.value)||0;
+  const newVal=Math.max(0,Math.min(150,cur+delta));
+  el.value=newVal;
+  updateNet(name,newVal);
 }
 
 function calcResults(){
@@ -1158,6 +1209,7 @@ function loadAdminHcpStats(){
 }
 
 document.getElementById('add-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.getElementById('email-edit-modal').addEventListener('click',function(e){if(e.target===this)closeEmailEdit();});
 init();
 </script>
 </body>

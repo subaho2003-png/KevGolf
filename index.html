@@ -18,7 +18,7 @@
   .screen{display:none;min-height:calc(100vh - 120px);padding:20px 16px 40px;max-width:600px;margin:0 auto}
   .screen.active{display:block}
   .screen-title{font-family:'Bebas Neue',cursive;font-size:1.8rem;color:var(--gold-light);letter-spacing:2px;margin-bottom:6px}
-  .screen-sub{color:rgba(255,255,th255,0.85);font-size:0.8rem;letter-spacing:1px;margin-bottom:20px}
+  .screen-sub{color:rgba(255,255,255,0.85);font-size:0.8rem;letter-spacing:1px;margin-bottom:20px}
   .player-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .player-card{background:rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.18);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;user-select:none}
   .player-card:active{transform:scale(0.96)}
@@ -137,6 +137,36 @@
   .admin-table th{color:var(--gold-light);font-family:'Bebas Neue',cursive;letter-spacing:1px;padding:8px 6px;border-bottom:1px solid rgba(212,168,67,0.3);text-align:left;font-size:0.9rem}
   .admin-table td{color:#fff;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.06)}
   .admin-table tr:last-child td{border-bottom:none}
+  /* PIN modal */
+  .pin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;align-items:center;justify-content:center;}
+  .pin-overlay.open{display:flex;}
+  .pin-box{background:#1a2a1f;border:2px solid var(--gold);border-radius:20px;padding:28px 24px 20px;width:90%;max-width:320px;text-align:center;}
+  .pin-title{font-family:'Bebas Neue',cursive;font-size:1.5rem;color:var(--gold-light);letter-spacing:3px;margin-bottom:4px;}
+  .pin-sub{color:rgba(255,255,255,0.45);font-size:0.72rem;letter-spacing:1px;margin-bottom:18px;}
+  .pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:18px;}
+  .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:transparent;transition:all 0.15s;}
+  .pin-dot.filled{background:var(--gold);border-color:var(--gold);}
+  .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+  .pin-k{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:12px;color:#fff;font-family:'Bebas Neue',cursive;font-size:1.5rem;padding:13px;cursor:pointer;transition:all 0.15s;letter-spacing:1px;-webkit-tap-highlight-color:transparent;}
+  .pin-k:active{background:rgba(212,168,67,0.35);border-color:var(--gold);}
+  .pin-k.k-del{font-size:1.1rem;color:rgba(255,255,255,0.55);}
+  .pin-k.k-blank{background:transparent;border-color:transparent;pointer-events:none;}
+  /* Drum guard overlay – blocks drum scroll when not admin */
+  .input-guard{display:block;position:absolute;inset:0;z-index:20;cursor:pointer;border-radius:inherit;}
+  body.is-admin .input-guard{display:none;}
+  @keyframes pinShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  /* Weather widget */
+  .weather-widget{background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:12px 14px;margin-top:10px;display:none}
+  .weather-widget.visible{display:block}
+  .w-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .w-icon{font-size:1.5rem;line-height:1}
+  .w-title{font-family:'Bebas Neue',cursive;font-size:0.85rem;color:rgba(255,255,255,0.45);letter-spacing:2px}
+  .w-stats{display:flex;gap:0;flex-wrap:wrap}
+  .w-stat{flex:1;min-width:70px;padding-right:8px}
+  .w-val{font-family:'Bebas Neue',cursive;font-size:1.2rem;color:var(--gold-light);letter-spacing:1px;white-space:nowrap}
+  .w-lbl{font-size:0.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-top:1px}
+  .w-loading{color:rgba(255,255,255,0.38);font-size:0.78rem;font-style:italic}
+  .w-unavail{color:rgba(255,255,255,0.3);font-size:0.75rem;font-style:italic}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -151,6 +181,10 @@
     <div class="step-dot" id="dot2"></div>
     <div class="step-dot" id="dot3"></div>
     <div class="step-dot" id="dot4"></div>
+  </div>
+  <div style="text-align:center;margin-top:7px;min-height:20px">
+    <span id="bar-view" onclick="requireAdmin(()=>{})" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:3px 12px;font-size:0.67rem;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:1px;cursor:pointer">🔒 VIEW ONLY · TAP TO UNLOCK</span>
+    <span id="bar-active" onclick="lockAdmin()" style="display:none;align-items:center;gap:5px;background:rgba(212,168,67,0.18);border:1px solid var(--gold);border-radius:20px;padding:3px 12px;font-size:0.67rem;font-weight:700;color:var(--gold-light);letter-spacing:1px;cursor:pointer">🔓 ADMIN MODE · TAP TO LOCK</span>
   </div>
 </header>
 
@@ -174,6 +208,7 @@
       <div class="drum-col" id="drum-ampm"></div>
     </div>
     <div class="drum-hl"></div>
+    <div class="input-guard" onclick="requireAdmin(()=>{})"></div>
   </div>
   <div class="field-label" style="margin-top:16px">Day of Week</div>
   <div class="day-picker" id="day-picker">
@@ -186,7 +221,22 @@
     <button class="course-btn" onclick="setEventDay(this,'Sunday')">Sun</button>
   </div>
   <div class="field-label" style="margin-top:16px">Event Date</div>
-  <input class="date-input" type="date" id="event-date-input" value="2026-04-05" oninput="eventDate=this.value" onchange="eventDate=this.value">
+  <input class="date-input" type="date" id="event-date-input" value="2026-04-05" oninput="onEventDateChange(this.value)" onchange="onEventDateChange(this.value)">
+  <div class="weather-widget" id="weather-widget">
+    <div id="weather-loading" class="w-loading">Fetching forecast...</div>
+    <div id="weather-content" style="display:none">
+      <div class="w-header">
+        <span id="weather-icon" class="w-icon"></span>
+        <span class="w-title">Forecast</span>
+      </div>
+      <div class="w-stats">
+        <div class="w-stat"><div class="w-val" id="w-temp"></div><div class="w-lbl">High</div></div>
+        <div class="w-stat"><div class="w-val" id="w-wind"></div><div class="w-lbl">Wind</div></div>
+        <div class="w-stat"><div class="w-val" id="w-humidity"></div><div class="w-lbl">Humidity</div></div>
+        <div class="w-stat"><div class="w-val" id="w-rain"></div><div class="w-lbl">Rain</div></div>
+      </div>
+    </div>
+  </div>
   <div class="field-label" style="margin-top:16px">Players</div>
   <div class="count-badge" id="select-count">0 selected</div>
   <div style="color:rgba(255,255,255,0.45);font-size:0.72rem;letter-spacing:1px;margin-bottom:10px;margin-top:4px">Long touch to update email address</div>
@@ -201,6 +251,7 @@
   <div id="round-info" style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,168,67,0.3);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:none">
     <div id="round-info-course" style="color:var(--gold-light);font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:1px"></div>
     <div id="round-info-time" style="color:rgba(255,255,255,0.7);font-size:0.82rem;font-weight:600;margin-top:2px"></div>
+    <div id="round-info-weather" style="color:rgba(255,255,255,0.55);font-size:0.78rem;font-weight:600;margin-top:3px;display:none"></div>
   </div>
   <div class="field-label">Assign Groups — select a group, then tap players</div>
   <div class="group-selector-bar" id="group-selector"></div>
@@ -285,6 +336,34 @@
 
 <div id="toast"></div>
 
+<div class="pin-overlay" id="pin-overlay">
+  <div class="pin-box">
+    <div class="pin-title">Admin Access</div>
+    <div class="pin-sub">ENTER PIN TO MAKE CHANGES</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-k" onclick="pinKey('1')">1</button>
+      <button class="pin-k" onclick="pinKey('2')">2</button>
+      <button class="pin-k" onclick="pinKey('3')">3</button>
+      <button class="pin-k" onclick="pinKey('4')">4</button>
+      <button class="pin-k" onclick="pinKey('5')">5</button>
+      <button class="pin-k" onclick="pinKey('6')">6</button>
+      <button class="pin-k" onclick="pinKey('7')">7</button>
+      <button class="pin-k" onclick="pinKey('8')">8</button>
+      <button class="pin-k" onclick="pinKey('9')">9</button>
+      <button class="pin-k k-blank"></button>
+      <button class="pin-k" onclick="pinKey('0')">0</button>
+      <button class="pin-k k-del" onclick="pinDel()">⌫</button>
+    </div>
+    <button class="btn btn-secondary" onclick="closePinModal()" style="margin-top:0;font-size:0.95rem;padding:10px">Cancel</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="email-edit-modal">
   <div class="modal">
     <div class="modal-title" id="email-edit-title">Update Email</div>
@@ -324,6 +403,10 @@ const db=firebase.firestore();
 const rosterDoc=db.collection('kevgolf').doc('roster');
 const historyDoc=db.collection('kevgolf').doc('history');
 const winningsDoc=db.collection('kevgolf').doc('winnings');
+const sessionDoc=db.collection('kevgolf').doc('session');
+
+const ADMIN_PIN='1961';
+let isAdmin=false,pinBuf='',pinCb=null;
 
 const origNames=["Jon Anderson","Bill Baldwin","Craig Barbret","Bruce Broekhuizen","Kevin Bryan","Bob Camirie","Phil Colson","Randy Corona","Brad Dunham","Jason Eads","Jim Eads","Andy Eggers","Gene Eeingenburg","Dale Fraaza","Jimmy Friese","Wally Fulton","Kimmer Gaites","Perry Gould","Greg Gutchigan","Rod Kennedy","Bill Laubenstein","Ed Lawlor","Greg Leisgang","Tom Manuel","Kevin McGuire","Terry Noble","Patrick Reilly","Elvis Rodriguez","Cliff Rupnow","Fred Russo","Dennis Sarlo","Tim Sax","Bob Staples","Chuck Starcevich","Loren Van Wyk","Bruce Vick","Larry Vollett","Al Wolden","Eli Wettenstein","Matt Winfree","Jim Yeazle","Anthony Starcevich","Steve Nardiello"];
 
@@ -423,6 +506,203 @@ const GROUP_NAMES=[,'1','2','3','4','5','6','7','8','9','10'];
 
 const VERSION = '2.1';
 
+// ── Admin PIN ──────────────────────────────────────────────────
+function requireAdmin(cb){
+  if(isAdmin){cb();return;}
+  pinCb=cb;pinBuf='';updatePinDots();
+  document.getElementById('pin-overlay').classList.add('open');
+}
+function pinKey(d){
+  if(pinBuf.length>=4)return;
+  pinBuf+=d;updatePinDots();
+  if(pinBuf.length===4)setTimeout(checkPin,150);
+}
+function pinDel(){pinBuf=pinBuf.slice(0,-1);updatePinDots();}
+function updatePinDots(){
+  for(let i=0;i<4;i++)document.getElementById(`pd${i}`).classList.toggle('filled',i<pinBuf.length);
+}
+function checkPin(){
+  if(pinBuf===ADMIN_PIN){
+    setAdminMode(true);
+    closePinModal();
+    if(pinCb){pinCb();pinCb=null;}
+    toast('✓ Admin mode active');
+  }else{
+    pinBuf='';updatePinDots();
+    // shake effect
+    const box=document.querySelector('.pin-box');
+    box.style.animation='none';
+    requestAnimationFrame(()=>{box.style.animation='pinShake 0.35s ease';});
+    toast('Incorrect PIN');
+  }
+}
+function closePinModal(){
+  document.getElementById('pin-overlay').classList.remove('open');
+  pinBuf='';pinCb=null;updatePinDots();
+}
+function setAdminMode(on){
+  isAdmin=on;
+  document.body.classList.toggle('is-admin',on);
+  document.getElementById('bar-view').style.display=on?'none':'inline-flex';
+  document.getElementById('bar-active').style.display=on?'inline-flex':'none';
+}
+function lockAdmin(){
+  setAdminMode(false);
+  toast('Admin mode locked');
+}
+
+// ── Session sync ───────────────────────────────────────────────
+function saveSessionState(){
+  if(!isAdmin)return;
+  sessionDoc.set({
+    course:selectedCourse,teeHour,teeMin,teeAMPM,
+    eventDay,eventDate,
+    selected:Array.from(selected),
+    activePlayers,playerGroups,workingHcps,numGroups,
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(e=>console.warn('Session save error:',e));
+}
+function applySessionToUI(d){
+  selectedCourse=d.course||'';
+  teeHour=d.teeHour||8;teeMin=d.teeMin!==undefined?d.teeMin:0;teeAMPM=d.teeAMPM||'AM';
+  eventDay=d.eventDay||'Tuesday';eventDate=d.eventDate||'';
+  selected=new Set(d.selected||[]);
+  activePlayers=d.activePlayers||[];
+  playerGroups=d.playerGroups||{};workingHcps=d.workingHcps||{};numGroups=d.numGroups||0;
+  // Course buttons
+  document.querySelectorAll('.course-picker .course-btn').forEach(b=>{
+    b.classList.toggle('selected',b.textContent.trim()===selectedCourse);
+  });
+  // Day buttons
+  const dayMap={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday',Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
+  document.querySelectorAll('#day-picker .course-btn').forEach(b=>{
+    b.classList.toggle('selected',dayMap[b.textContent.trim()]===eventDay);
+  });
+  // Date input
+  const dateEl=document.getElementById('event-date-input');
+  if(dateEl&&dateEl.value!==eventDate)dateEl.value=eventDate||'';
+  // Fetch weather if date changed
+  if(!weatherData||weatherData._date!==eventDate)fetchWeather(eventDate);
+  syncDrumsToState();
+  buildPlayerGrid();
+  // Update review screen if visible
+  const s1=document.getElementById('screen-1');
+  if(s1&&s1.classList.contains('active')&&activePlayers.length>0){
+    buildReviewList();buildGroupSelector();checkAllGrouped();
+    const ri=document.getElementById('round-info');
+    if(selectedCourse||eventDate){
+      document.getElementById('round-info-course').textContent=selectedCourse||'Course TBD';
+      document.getElementById('round-info-time').textContent=`${eventDay}, ${getEventDateLabel()}  ·  Tee Time: ${getTeeTime()}`;
+      const wEl=document.getElementById('round-info-weather');
+      if(weatherData){wEl.textContent=getWeatherLine();wEl.style.display='block';}
+      else{wEl.style.display='none';}
+      ri.style.display='block';
+    }
+  }
+  document.getElementById('select-count').textContent=`${selected.size} selected`;
+  document.getElementById('copy-lineup-btn').style.display=selected.size>=1?'block':'none';
+}
+function setDrumScrollValue(id,items,value){
+  const col=document.getElementById(id);if(!col)return;
+  const idx=items.indexOf(String(value));
+  if(idx>=0){col.scrollTo({top:idx*DRUM_H,behavior:'smooth'});refreshDrumHighlight(col,idx);}
+}
+function syncDrumsToState(){
+  const hours=['1','2','3','4','5','6','7','8','9','10','11','12'];
+  const mins=['00','05','10','15','20','25','30','35','40','45','50','55','60'];
+  setDrumScrollValue('drum-hour',hours,teeHour);
+  setDrumScrollValue('drum-min',mins,String(teeMin).padStart(2,'0'));
+  setDrumScrollValue('drum-ampm',['AM','PM'],teeAMPM);
+}
+function onEventDateChange(val){
+  if(!isAdmin){
+    const dateEl=document.getElementById('event-date-input');
+    if(dateEl)dateEl.value=eventDate||'';
+    requireAdmin(()=>{});return;
+  }
+  eventDate=val;saveSessionState();fetchWeather(val);
+}
+
+// ── Weather ────────────────────────────────────────────────────
+// Fort Pierce, FL (all courses are in this area)
+const WEATHER_LAT=27.45,WEATHER_LON=-80.33;
+let weatherData=null;
+
+function fetchWeather(date){
+  const widget=document.getElementById('weather-widget');
+  if(!date){widget.classList.remove('visible');weatherData=null;return;}
+  const today=new Date();today.setHours(0,0,0,0);
+  const target=new Date(date+'T12:00:00');
+  const diff=Math.round((target-today)/86400000);
+  if(diff<0||diff>16){
+    widget.classList.remove('visible');weatherData=null;
+    if(diff>16){
+      widget.classList.add('visible');
+      document.getElementById('weather-loading').className='w-unavail';
+      document.getElementById('weather-loading').textContent='Forecast available within 16 days of the outing.';
+      document.getElementById('weather-content').style.display='none';
+    }
+    return;
+  }
+  widget.classList.add('visible');
+  const loading=document.getElementById('weather-loading');
+  loading.className='w-loading';loading.textContent='Fetching forecast...';loading.style.display='block';
+  document.getElementById('weather-content').style.display='none';
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LAT}&longitude=${WEATHER_LON}`+
+    `&daily=temperature_2m_max,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,weathercode`+
+    `&hourly=relative_humidity_2m`+
+    `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York`+
+    `&start_date=${date}&end_date=${date}`;
+  fetch(url).then(r=>r.json()).then(data=>{
+    if(!data.daily||!data.daily.temperature_2m_max||data.daily.temperature_2m_max[0]==null){
+      loading.className='w-unavail';loading.textContent='Forecast not available for this date.';return;
+    }
+    const d=data.daily,h=data.hourly;
+    const humidity=h&&h.relative_humidity_2m?h.relative_humidity_2m[12]:null;
+    weatherData={
+      _date:date,
+      temp:Math.round(d.temperature_2m_max[0]),
+      windSpeed:Math.round(d.wind_speed_10m_max[0]),
+      windDir:windDegToDir(d.wind_direction_10m_dominant[0]),
+      humidity:humidity!=null?Math.round(humidity):null,
+      rain:d.precipitation_probability_max[0]??0,
+      code:d.weathercode[0]??0
+    };
+    document.getElementById('weather-icon').textContent=weatherEmoji(weatherData.code);
+    document.getElementById('w-temp').textContent=`${weatherData.temp}°F`;
+    document.getElementById('w-wind').textContent=`${weatherData.windSpeed} mph ${weatherData.windDir}`;
+    document.getElementById('w-humidity').textContent=weatherData.humidity!=null?`${weatherData.humidity}%`:'—';
+    document.getElementById('w-rain').textContent=`${weatherData.rain}%`;
+    loading.style.display='none';
+    document.getElementById('weather-content').style.display='block';
+    // Update round-info on screen 1 if visible
+    const wEl=document.getElementById('round-info-weather');
+    if(wEl){wEl.textContent=getWeatherLine();wEl.style.display='block';}
+  }).catch(()=>{
+    loading.className='w-unavail';loading.textContent='Weather unavailable.';
+  });
+}
+function windDegToDir(deg){
+  if(deg==null)return'';
+  return['N','NE','E','SE','S','SW','W','NW'][Math.round(deg/45)%8];
+}
+function weatherEmoji(code){
+  if(code===0)return'☀️';
+  if(code<=3)return'⛅';
+  if(code<=48)return'🌫️';
+  if(code<=67)return'🌧️';
+  if(code<=77)return'❄️';
+  if(code<=82)return'🌦️';
+  return'⛈️';
+}
+function getWeatherLine(){
+  if(!weatherData)return'';
+  let s=`${weatherEmoji(weatherData.code)} ${weatherData.temp}°F High · Wind ${weatherData.windSpeed} mph ${weatherData.windDir}`;
+  if(weatherData.humidity!=null)s+=` · Humidity ${weatherData.humidity}%`;
+  s+=` · Rain ${weatherData.rain}%`;
+  return s;
+}
+
 function init(){
   try{
     const v=localStorage.getItem('kevgolf_version');
@@ -432,7 +712,7 @@ function init(){
   try{const s=localStorage.getItem('kevgolf_emails');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(roster[n])roster[n].email=d[n];});}}catch(e){}
   try{const s=localStorage.getItem('kevgolf_newplayers');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(!roster[n])roster[n]=d[n];});}}catch(e){}
   loadSelections();buildPlayerGrid();updateDots(0);initDrums();
-  // Live sync from Firestore
+  // Live sync – roster
   rosterDoc.onSnapshot(doc=>{
     if(!doc.exists)return;
     const data=doc.data();
@@ -444,21 +724,30 @@ function init(){
     });
     buildPlayerGrid();
   },err=>console.warn('Firestore sync error:',err));
+  // Live sync – session (course, players, groupings, tee time)
+  sessionDoc.onSnapshot(doc=>{
+    if(!doc.exists)return;
+    if(isAdmin)return; // admin is source of truth; don't overwrite local changes
+    applySessionToUI(doc.data());
+  },err=>console.warn('Session sync error:',err));
 }
 
 function selectCourse(btn,name,ctp){
-  selectedCourse=name;ctpCount=ctp;
-  document.querySelectorAll('.course-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
+  requireAdmin(()=>{
+    selectedCourse=name;ctpCount=ctp;
+    document.querySelectorAll('.course-picker .course-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    saveSessionState();
+  });
 }
 
 function initDrums(){
   const hours=['1','2','3','4','5','6','7','8','9','10','11','12'];
   const mins=['00','05','10','15','20','25','30','35','40','45','50','55','60'];
   const ampms=['AM','PM'];
-  buildDrum('drum-hour',hours,7,v=>{teeHour=parseInt(v);});
-  buildDrum('drum-min',mins,0,v=>{teeMin=parseInt(v);});
-  buildDrum('drum-ampm',ampms,0,v=>{teeAMPM=v;});
+  buildDrum('drum-hour',hours,7,v=>{teeHour=parseInt(v);if(isAdmin)saveSessionState();});
+  buildDrum('drum-min',mins,0,v=>{teeMin=parseInt(v);if(isAdmin)saveSessionState();});
+  buildDrum('drum-ampm',ampms,0,v=>{teeAMPM=v;if(isAdmin)saveSessionState();});
 }
 
 function buildDrum(id,items,defaultIdx,setter){
@@ -509,9 +798,12 @@ function getTeeTime(){
 }
 
 function setEventDay(btn,day){
-  eventDay=day;
-  document.querySelectorAll('#day-picker .course-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
+  requireAdmin(()=>{
+    eventDay=day;
+    document.querySelectorAll('#day-picker .course-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    saveSessionState();
+  });
 }
 
 function getEventDateLabel(){
@@ -531,18 +823,20 @@ function updateHcp(name,newVal,oldVal){
 }
 
 function saveLineupHandicaps(){
-  let changed=0;
-  activePlayers.forEach(n=>{
-    const oldH=roster[n].hcp,newH=workingHcps[n];
-    if(newH!==oldH){
-      roster[n].hcp=newH;
-      logChange('hcp_change',n,{oldHcp:oldH,newHcp:newH});
-      changed++;
-    }
+  requireAdmin(()=>{
+    let changed=0;
+    activePlayers.forEach(n=>{
+      const oldH=roster[n].hcp,newH=workingHcps[n];
+      if(newH!==oldH){
+        roster[n].hcp=newH;
+        logChange('hcp_change',n,{oldHcp:oldH,newHcp:newH});
+        changed++;
+      }
+    });
+    if(changed===0){toast('No handicap changes to save');return;}
+    saveAllRosterData();
+    toast(`✓ ${changed} handicap${changed>1?'s':''} saved`);
   });
-  if(changed===0){toast('No handicap changes to save');return;}
-  saveAllRosterData();
-  toast(`✓ ${changed} handicap${changed>1?'s':''} saved`);
 }
 
 function saveRoundWinnings(){
@@ -606,7 +900,7 @@ function buildPlayerGrid(){
     card.className='player-card'+(selected.has(name)?' selected':'');
     card.innerHTML=`<span class="check">✓</span><div class="pname">${name}</div><div class="phcp">HCP: ${roster[name].hcp}</div>`;
     let pressTimer=null,longFired=false;
-    const startPress=()=>{longFired=false;pressTimer=setTimeout(()=>{longFired=true;openEmailEdit(name);},650);};
+    const startPress=()=>{longFired=false;pressTimer=setTimeout(()=>{longFired=true;requireAdmin(()=>openEmailEdit(name));},650);};
     const cancelPress=()=>{clearTimeout(pressTimer);};
     card.addEventListener('touchstart',startPress,{passive:true});
     card.addEventListener('touchend',cancelPress);
@@ -630,18 +924,22 @@ function openEmailEdit(name){
 }
 function closeEmailEdit(){document.getElementById('email-edit-modal').classList.remove('open');}
 function saveEmailEdit(){
-  const email=document.getElementById('email-edit-input').value.trim();
-  roster[emailEditTarget].email=email;
-  saveAllRosterData();
-  logChange('email_change',emailEditTarget,{email});
-  closeEmailEdit();
-  toast('✓ Email updated');
+  requireAdmin(()=>{
+    const email=document.getElementById('email-edit-input').value.trim();
+    roster[emailEditTarget].email=email;
+    saveAllRosterData();
+    logChange('email_change',emailEditTarget,{email});
+    closeEmailEdit();
+    toast('✓ Email updated');
+  });
 }
 
 function togglePlayer(name,card){
-  if(selected.has(name)){selected.delete(name);card.classList.remove('selected');}
-  else{selected.add(name);card.classList.add('selected');}
-  updateCount();
+  requireAdmin(()=>{
+    if(selected.has(name)){selected.delete(name);card.classList.remove('selected');}
+    else{selected.add(name);card.classList.add('selected');}
+    updateCount();saveSessionState();
+  });
 }
 
 function updateCount(){
@@ -656,7 +954,11 @@ function loadSelections(){try{const s=localStorage.getItem('kevgolf_selected');i
 function copyLineup(){
   const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   let txt=`KEVGOLF — PLAYER LIST\n${date}\n`+'='.repeat(36)+'\n\n';
-  if(selectedCourse||eventDate)txt+=`Course: ${selectedCourse||'TBD'}\n${eventDay}, ${getEventDateLabel()}  ·  Tee Time: ${getTeeTime()}\n\n`;
+  if(selectedCourse||eventDate){
+    txt+=`Course: ${selectedCourse||'TBD'}\n${eventDay}, ${getEventDateLabel()}  ·  Tee Time: ${getTeeTime()}\n`;
+    if(weatherData)txt+=`${getWeatherLine()}\n`;
+    txt+='\n';
+  }
   const players=activePlayers.length?activePlayers:Array.from(selected).sort();
   const grouped=players.length&&players.some(n=>playerGroups[n]);
   if(grouped){
@@ -704,6 +1006,21 @@ function updateDots(cur){
 function goBack(n){showScreen(n);}
 
 function goToReview(){
+  if(!isAdmin){
+    // Viewer: navigate to see the current lineup (read-only)
+    if(activePlayers.length===0){toast('No lineup has been set yet');return;}
+    const ri=document.getElementById('round-info');
+    if(selectedCourse||eventDate){
+      document.getElementById('round-info-course').textContent=selectedCourse||'Course TBD';
+      document.getElementById('round-info-time').textContent=`${eventDay}, ${getEventDateLabel()}  ·  Tee Time: ${getTeeTime()}`;
+      const wEl=document.getElementById('round-info-weather');
+      if(weatherData){wEl.textContent=getWeatherLine();wEl.style.display='block';}
+      else{wEl.style.display='none';}
+      ri.style.display='block';
+    }else{ri.style.display='none';}
+    buildReviewList();buildGroupSelector();checkAllGrouped();showScreen(1);
+    return;
+  }
   if(selected.size<3){toast('Select at least 3 players');return;}
   activePlayers=Array.from(selected).sort();
   workingHcps={};activePlayers.forEach(n=>{workingHcps[n]=roster[n].hcp;});
@@ -713,10 +1030,13 @@ function goToReview(){
   const ri=document.getElementById('round-info');
   if(selectedCourse||eventDate){
     document.getElementById('round-info-course').textContent=selectedCourse||'Course TBD';
-    document.getElementById('round-info-time').textContent=
-      `${eventDay}, ${getEventDateLabel()}  ·  Tee Time: ${getTeeTime()}`;
+    document.getElementById('round-info-time').textContent=`${eventDay}, ${getEventDateLabel()}  ·  Tee Time: ${getTeeTime()}`;
+    const wEl=document.getElementById('round-info-weather');
+    if(weatherData){wEl.textContent=getWeatherLine();wEl.style.display='block';}
+    else{wEl.style.display='none';}
     ri.style.display='block';
   }else{ri.style.display='none';}
+  saveSessionState();
   buildReviewList();buildGroupSelector();showScreen(1);
 }
 
@@ -735,7 +1055,7 @@ function buildReviewList(){
       <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
         <button style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:32px;height:20px;border-radius:5px 5px 0 0;font-size:0.75rem;cursor:pointer;line-height:1" onclick="adjustHcpReview('${name}',1);event.stopPropagation()">▲</button>
         <input class="hcp-input" id="hcp-${sid}" type="number" min="0" max="54" value="${workingHcps[name]}" data-prev="${workingHcps[name]}"
-          onchange="updateHcp('${name}',parseFloat(this.value)||0,parseFloat(this.dataset.prev)||0);this.dataset.prev=this.value" aria-label="handicap">
+          onchange="onHcpChange('${name}',this)" aria-label="handicap">
         <button style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:32px;height:20px;border-radius:0 0 5px 5px;font-size:0.75rem;cursor:pointer;line-height:1" onclick="adjustHcpReview('${name}',-1);event.stopPropagation()">▼</button>
       </div>
       ${badge}
@@ -748,20 +1068,34 @@ function buildReviewList(){
   });
 }
 
+function onHcpChange(name,el){
+  if(!isAdmin){el.value=workingHcps[name]||0;requireAdmin(()=>{});return;}
+  const newVal=parseFloat(el.value)||0;
+  const prev=parseFloat(el.dataset.prev)||0;
+  updateHcp(name,newVal,prev);
+  el.dataset.prev=newVal;
+  saveSessionState();
+}
 function adjustHcpReview(name,delta){
-  const cur=workingHcps[name]||0;
-  const newVal=Math.max(0,Math.min(54,cur+delta));
-  if(newVal===cur)return;
-  updateHcp(name,newVal,cur);
-  const el=document.getElementById(`hcp-${safeid(name)}`);
-  if(el){el.value=newVal;el.dataset.prev=newVal;}
+  requireAdmin(()=>{
+    const cur=workingHcps[name]||0;
+    const newVal=Math.max(0,Math.min(54,cur+delta));
+    if(newVal===cur)return;
+    updateHcp(name,newVal,cur);
+    const el=document.getElementById(`hcp-${safeid(name)}`);
+    if(el){el.value=newVal;el.dataset.prev=newVal;}
+    saveSessionState();
+  });
 }
 
 function removeFromLineup(name){
-  activePlayers=activePlayers.filter(n=>n!==name);
-  selected.delete(name);delete workingHcps[name];delete playerGroups[name];
-  numGroups=Math.ceil(activePlayers.length/4);
-  buildReviewList();buildGroupSelector();buildPlayerGrid();checkAllGrouped();toast(`Removed ${name}`);
+  requireAdmin(()=>{
+    activePlayers=activePlayers.filter(n=>n!==name);
+    selected.delete(name);delete workingHcps[name];delete playerGroups[name];
+    numGroups=Math.ceil(activePlayers.length/4);
+    buildReviewList();buildGroupSelector();buildPlayerGrid();checkAllGrouped();
+    saveSessionState();toast(`Removed ${name}`);
+  });
 }
 
 function buildGroupSelector(){
@@ -791,14 +1125,16 @@ function selectGroup(g){
 }
 
 function assignGroup(name){
-  if(activeGroup===0){toast('Select a group first');return;}
-  if(playerGroups[name]===activeGroup){delete playerGroups[name];buildReviewList();buildGroupSelector();checkAllGrouped();return;}
-  const count=Object.values(playerGroups).filter(x=>x===activeGroup).length;
-  if(count>=4){toast(`Group ${activeGroup} is full`);return;}
-  playerGroups[name]=activeGroup;
-  const newCount=Object.values(playerGroups).filter(x=>x===activeGroup).length;
-  if(newCount===4){try{navigator.vibrate&&navigator.vibrate(250);}catch(e){}}
-  buildReviewList();buildGroupSelector();checkAllGrouped();
+  requireAdmin(()=>{
+    if(activeGroup===0){toast('Select a group first');return;}
+    if(playerGroups[name]===activeGroup){delete playerGroups[name];buildReviewList();buildGroupSelector();checkAllGrouped();saveSessionState();return;}
+    const count=Object.values(playerGroups).filter(x=>x===activeGroup).length;
+    if(count>=4){toast(`Group ${activeGroup} is full`);return;}
+    playerGroups[name]=activeGroup;
+    const newCount=Object.values(playerGroups).filter(x=>x===activeGroup).length;
+    if(newCount===4){try{navigator.vibrate&&navigator.vibrate(250);}catch(e){}}
+    buildReviewList();buildGroupSelector();checkAllGrouped();saveSessionState();
+  });
 }
 
 function checkAllGrouped(){
@@ -824,11 +1160,13 @@ function renderGroupSummary(){
   }
 }
 
-function goToScores(){buildScoreList();showScreen(2);}
+function goToScores(){requireAdmin(()=>{buildScoreList();showScreen(2);});}
 
 function goToCTP(){
-  if(activePlayers.length<3){toast('Need at least 3 players');return;}
-  renderCTPHoles();showScreen(3);
+  requireAdmin(()=>{
+    if(activePlayers.length<3){toast('Need at least 3 players');return;}
+    renderCTPHoles();showScreen(3);
+  });
 }
 
 function renderCTPHoles(){
@@ -849,7 +1187,7 @@ function renderCTPHoles(){
   }
 }
 
-function changeCTP(delta){ctpCount=Math.max(0,ctpCount+delta);renderCTPHoles();}
+function changeCTP(delta){requireAdmin(()=>{ctpCount=Math.max(0,ctpCount+delta);renderCTPHoles();});}
 
 function buildScoreList(){
   const list=document.getElementById('score-list');
@@ -891,6 +1229,9 @@ function adjustScore(name,delta){
 }
 
 function calcResults(){
+  requireAdmin(()=>_calcResults());
+}
+function _calcResults(){
   const scored=activePlayers.filter(n=>grossScores[n]!==undefined);
   if(scored.length<2){toast('Enter at least 2 scores');return;}
   const count=activePlayers.length;
@@ -923,6 +1264,7 @@ function calcResults(){
   lastResults={count,totalPot,ctpPot,placePot,perHoleCTP,ctpPerWinner,ctpWinnerCount,nets,groups,uniqueNets,playerPayout};
   renderResults(lastResults);showScreen(4);
 }
+
 
 function renderResults(r){
   const{count,totalPot,ctpPot,placePot,perHoleCTP,ctpPerWinner,ctpWinnerCount,nets,groups,uniqueNets,playerPayout}=r;
@@ -979,18 +1321,20 @@ function renderResults(r){
 }
 
 function applyHandicaps(apply){
-  saveRoundWinnings();
-  if(apply){
-    activePlayers.forEach(n=>{
-      const oldH=workingHcps[n],newH=proposedHcps[n];
-      roster[n].hcp=newH;
-      if(newH!==oldH)logChange('hcp_posted',n,{oldHcp:oldH,newHcp:newH});
-    });
-    saveAllRosterData();
-    toast('✓ Handicaps updated & round saved!');
-  }else{
-    toast('✓ Round saved · Handicaps unchanged');
-  }
+  requireAdmin(()=>{
+    saveRoundWinnings();
+    if(apply){
+      activePlayers.forEach(n=>{
+        const oldH=workingHcps[n],newH=proposedHcps[n];
+        roster[n].hcp=newH;
+        if(newH!==oldH)logChange('hcp_posted',n,{oldHcp:oldH,newHcp:newH});
+      });
+      saveAllRosterData();
+      toast('✓ Handicaps updated & round saved!');
+    }else{
+      toast('✓ Round saved · Handicaps unchanged');
+    }
+  });
 }
 
 function copyResults(){
@@ -999,6 +1343,7 @@ function copyResults(){
   const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   let txt=`KEVGOLF — RESULTS\n${date}\n`+'='.repeat(36)+'\n\n';
   if(selectedCourse)txt+=`COURSE: ${selectedCourse}  |  TEE TIME: ${getTeeTime()}\n`;
+  if(weatherData)txt+=`${getWeatherLine()}\n`;
   txt+=`PLAYERS: ${count}  |  TOTAL POT: $${totalPot}\nPlace Pool: $${placePot}  |  CTP Pool: $${ctpPot}\n\n`;
   txt+='── STANDINGS ──\n';
   let place=1;
@@ -1031,23 +1376,33 @@ function copyResults(){
 }
 
 function newRound(){
-  selected=new Set();
-  try{localStorage.removeItem('kevgolf_selected');}catch(e){}
-  activePlayers=[];ctpWinners={};grossScores={};ctpCount=2;
-  lastResults=null;proposedHcps={};workingHcps={};
-  selectedCourse='';playerGroups={};activeGroup=0;numGroups=0;
-  document.querySelectorAll('.course-btn').forEach(b=>b.classList.remove('selected'));
-  buildPlayerGrid();initDrums();showScreen(0);
+  requireAdmin(()=>{
+    selected=new Set();
+    try{localStorage.removeItem('kevgolf_selected');}catch(e){}
+    activePlayers=[];ctpWinners={};grossScores={};ctpCount=2;
+    lastResults=null;proposedHcps={};workingHcps={};weatherData=null;
+    document.getElementById('weather-widget').classList.remove('visible');
+    selectedCourse='';playerGroups={};activeGroup=0;numGroups=0;
+    document.querySelectorAll('.course-picker .course-btn,.day-picker .course-btn').forEach(b=>b.classList.remove('selected'));
+    document.querySelectorAll('#day-picker .course-btn').forEach((b,i)=>{if(i===1)b.classList.add('selected');});
+    buildPlayerGrid();initDrums();showScreen(0);
+    sessionDoc.set({course:'',teeHour:8,teeMin:0,teeAMPM:'AM',eventDay:'Tuesday',eventDate:'',
+      selected:[],activePlayers:[],playerGroups:{},workingHcps:{},numGroups:0,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(e=>console.warn('Session clear error:',e));
+  });
 }
 
 function openAddModal(){
-  document.getElementById('search-input').value='';
-  document.getElementById('search-results').innerHTML='';
-  document.getElementById('new-name').value='';
-  document.getElementById('new-hcp').value='';
-  document.getElementById('new-email').value='';
-  document.getElementById('add-modal').classList.add('open');
-  document.body.style.overflow='hidden';
+  requireAdmin(()=>{
+    document.getElementById('search-input').value='';
+    document.getElementById('search-results').innerHTML='';
+    document.getElementById('new-name').value='';
+    document.getElementById('new-hcp').value='';
+    document.getElementById('new-email').value='';
+    document.getElementById('add-modal').classList.add('open');
+    document.body.style.overflow='hidden';
+  });
 }
 
 function closeModal(){
@@ -1075,7 +1430,8 @@ function addFromRoster(name){
   if(!activePlayers.includes(name)){
     activePlayers.push(name);activePlayers.sort();
     selected.add(name);workingHcps[name]=roster[name].hcp;
-    buildReviewList();buildPlayerGrid();closeModal();toast(`Added ${name}`);
+    buildReviewList();buildPlayerGrid();closeModal();
+    saveSessionState();toast(`Added ${name}`);
   }
 }
 

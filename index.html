@@ -1022,9 +1022,13 @@ function goToReview(){
     return;
   }
   if(selected.size<3){toast('Select at least 3 players');return;}
-  activePlayers=Array.from(selected).sort();
-  workingHcps={};activePlayers.forEach(n=>{workingHcps[n]=roster[n].hcp;});
-  playerGroups={};activeGroup=0;numGroups=Math.ceil(activePlayers.length/4);
+  const newPlayers=Array.from(selected).sort();
+  const playersUnchanged=newPlayers.length===activePlayers.length&&newPlayers.every((n,i)=>n===activePlayers[i]);
+  if(!playersUnchanged){
+    activePlayers=newPlayers;
+    workingHcps={};activePlayers.forEach(n=>{workingHcps[n]=roster[n].hcp;});
+    playerGroups={};activeGroup=0;numGroups=Math.ceil(activePlayers.length/4);
+  }
   const dateEl=document.getElementById('event-date-input');
   if(dateEl&&dateEl.value)eventDate=dateEl.value;
   const ri=document.getElementById('round-info');

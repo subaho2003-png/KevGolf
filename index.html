@@ -977,12 +977,11 @@ function copyLineup(){
     players.forEach((n,i)=>{txt+=`${String(i+1).padEnd(3)} ${n.padEnd(24)} HCP ${roster[n].hcp}\n`;});
     txt+='\n';
   }
-  // Emails section
+  // Emails section — comma-separated for Yahoo Mail CC/BCC paste
   const emailPlayers=players.filter(n=>roster[n]&&roster[n].email);
   if(emailPlayers.length){
     txt+='\nEmails:\n';
-    emailPlayers.forEach(n=>{txt+=`${roster[n].email}\n`;});
-    txt+='\n';
+    txt+=emailPlayers.map(n=>roster[n].email).join(', ')+'\n';
   }
   txt+='='.repeat(36)+'\n';
   navigator.clipboard.writeText(txt).then(()=>toast('✓ Player list copied!')).catch(()=>{

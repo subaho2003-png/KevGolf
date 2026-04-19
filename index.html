@@ -12,7 +12,10 @@
   header{background:linear-gradient(135deg,var(--green-dark) 0%,var(--green) 100%);padding:20px 20px 16px;text-align:center;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
   header h1{font-family:'Bebas Neue',cursive;font-size:2.8rem;color:var(--gold);letter-spacing:4px;line-height:1;text-shadow:2px 2px 8px rgba(0,0,0,0.5)}
   header p{color:rgba(255,255,255,0.7);font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;margin-top:4px}
-  .step-indicator{display:flex;justify-content:center;gap:8px;margin-top:14px}
+  .step-indicator{display:flex;justify-content:center;gap:8px}
+  .nav-arrow{background:transparent;border:1.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.55);width:32px;height:22px;border-radius:7px;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+  .nav-arrow:active{background:rgba(212,168,67,0.25);border-color:var(--gold);color:var(--gold-light)}
+  .nav-arrow.hidden{opacity:0;pointer-events:none}
   .step-dot{width:28px;height:5px;border-radius:3px;background:rgba(255,255,255,0.2);transition:background 0.3s}
   .step-dot.active{background:var(--gold)}.step-dot.done{background:var(--green-light)}
   .screen{display:none;min-height:calc(100vh - 120px);padding:20px 16px 40px;max-width:600px;margin:0 auto}
@@ -182,12 +185,16 @@
 <header>
   <h1>⛳ KevGolf</h1>
   <p>Highest Net Score Wins</p>
-  <div class="step-indicator">
-    <div class="step-dot" id="dot0"></div>
-    <div class="step-dot" id="dot1"></div>
-    <div class="step-dot" id="dot2"></div>
-    <div class="step-dot" id="dot3"></div>
-    <div class="step-dot" id="dot4"></div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px">
+    <button class="nav-arrow hidden" id="nav-back" onclick="navBack()">◀</button>
+    <div class="step-indicator">
+      <div class="step-dot" id="dot0"></div>
+      <div class="step-dot" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
+      <div class="step-dot" id="dot4"></div>
+    </div>
+    <button class="nav-arrow" id="nav-fwd" onclick="navForward()">▶</button>
   </div>
   <div style="text-align:center;margin-top:7px;min-height:20px">
     <span id="bar-view" onclick="requireAdmin(()=>{})" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:3px 12px;font-size:0.67rem;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:1px;cursor:pointer">🔒 VIEW ONLY · TAP TO UNLOCK</span>
@@ -248,8 +255,10 @@
   <div class="count-badge" id="select-count">0 selected</div>
   <div style="color:rgba(255,255,255,0.45);font-size:0.72rem;letter-spacing:1px;margin-bottom:10px;margin-top:4px">Long touch a player to edit handicap, email, or status</div>
   <div class="player-grid" id="player-grid"></div>
-  <button class="btn btn-primary" onclick="goToReview()" style="margin-top:20px">Review Lineup →</button>
-  <button class="btn btn-secondary" id="copy-lineup-btn" onclick="copyLineup()" style="margin-top:8px;display:none">📋 Copy Player List</button>
+  <button class="btn btn-primary" onclick="goToReview()" style="margin-top:20px">Review Lineup / Create Groupings →</button>
+  <button class="btn btn-secondary" id="copy-lineup-btn" onclick="copyLineup()" style="margin-top:8px;display:none">📋 Current Player List</button>
+  <button class="btn btn-secondary" id="copy-email-btn" onclick="copyEmailList()" style="margin-top:8px;display:none">✉️ Current Player Email List</button>
+  <button class="btn btn-secondary" onclick="copyActiveRoster()" style="margin-top:8px">📋 Current Active Player List</button>
 </div>
 
 <div class="screen" id="screen-1">
@@ -983,7 +992,9 @@ function togglePlayer(name,card){
 
 function updateCount(){
   document.getElementById('select-count').textContent=`${selected.size} selected`;
-  document.getElementById('copy-lineup-btn').style.display=selected.size>=1?'block':'none';
+  const show=selected.size>=1?'block':'none';
+  document.getElementById('copy-lineup-btn').style.display=show;
+  document.getElementById('copy-email-btn').style.display=show;
   saveSelections();
 }
 
@@ -1016,12 +1027,6 @@ function copyLineup(){
     players.forEach((n,i)=>{txt+=`${String(i+1).padEnd(3)} ${n.padEnd(24)} HCP ${roster[n].hcp}\n`;});
     txt+='\n';
   }
-  // Emails section — comma-separated for Yahoo Mail CC/BCC paste (inactive players excluded)
-  const emailPlayers=players.filter(n=>roster[n]&&roster[n].email&&!roster[n].inactive);
-  if(emailPlayers.length){
-    txt+='\nEmails:\n';
-    txt+=emailPlayers.map(n=>roster[n].email).join(', ')+'\n';
-  }
   txt+='='.repeat(36)+'\n';
   navigator.clipboard.writeText(txt).then(()=>toast('✓ Player list copied!')).catch(()=>{
     const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
@@ -1029,9 +1034,48 @@ function copyLineup(){
   });
 }
 
+function copyEmailList(){
+  const players=activePlayers.length?activePlayers:Array.from(selected).sort();
+  const emails=players.filter(n=>roster[n]&&roster[n].email&&!roster[n].inactive).map(n=>roster[n].email);
+  if(!emails.length){toast('No emails to copy');return;}
+  const txt=emails.join(', ');
+  navigator.clipboard.writeText(txt).then(()=>toast('✓ Email list copied!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Email list copied!');
+  });
+}
+
+function copyActiveRoster(){
+  const league=Object.keys(roster).filter(n=>!roster[n].inactive).sort();
+  if(!league.length){toast('No active players');return;}
+  let txt=`KEVGOLF — ACTIVE PLAYER ROSTER\n`+'='.repeat(36)+'\n\n';
+  txt+=`${league.length} Active Players:\n\n`;
+  league.forEach((n,i)=>{txt+=`${String(i+1).padEnd(3)} ${n.padEnd(24)} HCP ${roster[n].hcp}\n`;});
+  txt+='\n'+'='.repeat(36)+'\n';
+  navigator.clipboard.writeText(txt).then(()=>toast('✓ Active roster copied!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Active roster copied!');
+  });
+}
+
+let currentScreen=0;
 function showScreen(n){
   document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===n));
-  updateDots(n);window.scrollTo(0,0);
+  currentScreen=n;updateDots(n);updateNavArrows(n);window.scrollTo(0,0);
+}
+function updateNavArrows(n){
+  document.getElementById('nav-back').classList.toggle('hidden',n===0);
+  document.getElementById('nav-fwd').classList.toggle('hidden',n===4);
+}
+function navBack(){
+  if(currentScreen===0)return;
+  goBack(currentScreen-1);
+}
+function navForward(){
+  if(currentScreen===0)goToReview();
+  else if(currentScreen===1)goToScores();
+  else if(currentScreen===2)goToCTP();
+  else if(currentScreen===3)calcResults();
 }
 
 function updateDots(cur){

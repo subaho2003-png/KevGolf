@@ -260,8 +260,8 @@
   <div class="player-grid" id="player-grid"></div>
   <button class="btn btn-primary" onclick="goToReview()" style="margin-top:20px">Review Lineup / Create Groupings →</button>
   <button class="btn btn-secondary" id="copy-lineup-btn" onclick="copyLineup()" style="margin-top:8px;display:none">📋 Current Player List</button>
-  <button class="btn btn-secondary" id="copy-email-btn" onclick="copyEmailList()" style="margin-top:8px;display:none">✉️ Current Player Email List</button>
-  <button class="btn btn-secondary" onclick="copyActiveRoster()" style="margin-top:8px">📋 Current Active Player List</button>
+  <button class="btn btn-secondary" id="copy-email-btn" onclick="copyEmailList()" style="margin-top:8px;display:none">✉️ Player Email List</button>
+  <button class="btn btn-secondary" onclick="copyActiveRosterEmails()" style="margin-top:8px">✉️ Active Player Email List</button>
 </div>
 
 <div class="screen" id="screen-1">
@@ -281,8 +281,8 @@
     <button class="btn btn-secondary" onclick="copyLineup()">📋 Current Player List</button>
   </div>
   <div style="margin-top:8px">
-    <button class="btn btn-secondary" id="copy-email-btn-1" onclick="copyEmailList()" style="display:none">✉️ Current Player Email List</button>
-    <button class="btn btn-secondary" onclick="copyActiveRoster()" style="margin-top:8px">📋 Current Active Player List</button>
+    <button class="btn btn-secondary" id="copy-email-btn-1" onclick="copyEmailList()" style="display:none">✉️ Player Email List</button>
+    <button class="btn btn-secondary" onclick="copyActiveRosterEmails()" style="margin-top:8px">✉️ Active Player Email List</button>
   </div>
   <div class="divider"></div>
   <button class="btn btn-primary" onclick="goToScores()">Enter Scores →</button>
@@ -291,6 +291,7 @@
 <div class="screen" id="screen-2">
   <div class="screen-title">Enter Gross Scores</div>
   <div class="screen-sub">NET = GROSS − HANDICAP</div>
+  <div class="screen-sub" style="margin-top:4px">To enter a Net Score of 0, long touch player name</div>
   <div class="score-entry-list" id="score-list"></div>
   <div class="divider"></div>
   <button class="btn btn-primary" onclick="goToCTP()">Set Up CTP Holes →</button>
@@ -1066,6 +1067,23 @@ function copyActiveRoster(){
   });
 }
 
+function copyActiveRosterEmails(){
+  const emails=Object.keys(roster).filter(n=>!roster[n].inactive&&roster[n].email).sort().map(n=>roster[n].email);
+  if(!emails.length){toast('No emails found for active players');return;}
+  const txt=emails.join(', ');
+  navigator.clipboard.writeText(txt).then(()=>toast('✓ Active player emails copied!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Active player emails copied!');
+  });
+}
+
+function setNetZero(name){
+  const hcp=workingHcps[name]||0;
+  const sid=safeid(name);
+  const el=document.getElementById(`gross-${sid}`);
+  if(el){el.value=hcp;updateNet(name,hcp);toast(`${name}: Net 0`);}
+}
+
 let currentScreen=0;
 function showScreen(n){
   document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===n));
@@ -1287,7 +1305,7 @@ function buildScoreList(){
     const sid=safeid(name);
     const row=document.createElement('div');
     row.className='score-row';
-    row.innerHTML=`<div style="flex:1"><div class="sname">${name}</div><div class="shcp">HCP ${hcp}</div></div>
+    row.innerHTML=`<div style="flex:1"><div class="sname" id="sname-${sid}">${name}</div><div class="shcp">HCP ${hcp}</div></div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
         <button style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:36px;height:22px;border-radius:5px 5px 0 0;font-size:0.75rem;cursor:pointer;line-height:1" onclick="adjustScore('${name}',1)">▲</button>
         <input class="gross-input" id="gross-${sid}" type="number" min="0" max="150"
@@ -1295,6 +1313,14 @@ function buildScoreList(){
         <button style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:36px;height:22px;border-radius:0 0 5px 5px;font-size:0.75rem;cursor:pointer;line-height:1" onclick="adjustScore('${name}',-1)">▼</button>
       </div>
       <div class="net-display" id="net-${sid}">${prev?'Net '+(prev-hcp).toFixed(1):'—'}</div>`;
+    // Long-press player name → set Net Score to 0 (gross = hcp)
+    const snameEl=row.querySelector(`#sname-${sid}`);
+    let _lpt=null;
+    snameEl.addEventListener('touchstart',e=>{_lpt=setTimeout(()=>{setNetZero(name);_lpt=null;},600);},{passive:true});
+    snameEl.addEventListener('touchend',()=>{if(_lpt){clearTimeout(_lpt);_lpt=null;}});
+    snameEl.addEventListener('touchmove',()=>{if(_lpt){clearTimeout(_lpt);_lpt=null;}});
+    snameEl.addEventListener('mousedown',e=>{_lpt=setTimeout(()=>{setNetZero(name);_lpt=null;},600);});
+    snameEl.addEventListener('mouseup',()=>{if(_lpt){clearTimeout(_lpt);_lpt=null;}});
     list.appendChild(row);
   });
 }

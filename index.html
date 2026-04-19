@@ -304,7 +304,7 @@
   <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:8px;">Number of CTP holes:</div>
   <div class="stepper">
     <button class="stepper-btn" onclick="changeCTP(-1)">−</button>
-    <div class="stepper-val" id="ctp-count">2</div>
+    <div class="stepper-val" id="ctp-count">4</div>
     <button class="stepper-btn" onclick="changeCTP(1)">+</button>
   </div>
   <div id="ctp-holes-list" style="margin-top:16px;"></div>
@@ -518,7 +518,7 @@ const payouts={
   40:[90,75,60,50,30,25,20,20,15,15]
 };
 
-let selected=new Set(),activePlayers=[],ctpCount=2,ctpWinners={};
+let selected=new Set(),activePlayers=[],ctpCount=4,ctpWinners={};
 let grossScores={},lastResults=null,proposedHcps={},workingHcps={};
 let selectedCourse='',teeHour=8,teeMin=0,teeAMPM='AM';
 let eventDay='Tuesday',eventDate='2026-04-05';
@@ -1494,7 +1494,7 @@ function newRound(){
   requireAdmin(()=>{
     selected=new Set();
     try{localStorage.removeItem('kevgolf_selected');}catch(e){}
-    activePlayers=[];ctpWinners={};grossScores={};ctpCount=2;
+    activePlayers=[];ctpWinners={};grossScores={};ctpCount=selectedCourse==='Gator Trace'?3:4;
     lastResults=null;proposedHcps={};workingHcps={};weatherData=null;
     document.getElementById('weather-widget').classList.remove('visible');
     selectedCourse='';playerGroups={};activeGroup=0;numGroups=0;

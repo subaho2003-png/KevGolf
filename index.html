@@ -252,7 +252,10 @@
     </div>
   </div>
   <div class="field-label" style="margin-top:16px">Players</div>
-  <div class="count-badge" id="select-count">0 selected</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:0">
+    <div class="count-badge" id="select-count">0 selected</div>
+    <button class="btn btn-secondary" onclick="openAddModal()" style="margin:0;padding:6px 14px;font-size:0.82rem">+ Add Player</button>
+  </div>
   <div style="color:rgba(255,255,255,0.45);font-size:0.72rem;letter-spacing:1px;margin-bottom:10px;margin-top:4px">Long touch a player to edit handicap, email, or status</div>
   <div class="player-grid" id="player-grid"></div>
   <button class="btn btn-primary" onclick="goToReview()" style="margin-top:20px">Review Lineup / Create Groupings →</button>
@@ -263,7 +266,7 @@
 
 <div class="screen" id="screen-1">
   <div class="screen-title">Lineup Review</div>
-  <div class="screen-sub">ADJUST HANDICAPS · ASSIGN GROUPS · ADD OR REMOVE PLAYERS</div>
+  <div class="screen-sub">ASSIGN GROUPS · ADD OR REMOVE PLAYERS</div>
   <div id="round-info" style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,168,67,0.3);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:none">
     <div id="round-info-course" style="color:var(--gold-light);font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:1px"></div>
     <div id="round-info-time" style="color:rgba(255,255,255,0.7);font-size:0.82rem;font-weight:600;margin-top:2px"></div>
@@ -274,10 +277,12 @@
   <div class="roster-list" id="review-list"></div>
   <div id="group-summary" style="display:none;margin-top:16px"></div>
   <div style="margin-top:16px">
-    <button class="btn btn-secondary" onclick="openAddModal()">+ Add Player</button>
     <button class="btn btn-secondary" onclick="goBack(0)">← Change Selections</button>
-    <button class="btn btn-secondary" onclick="copyLineup()">📋 Copy Player List</button>
-    <button class="btn btn-success" onclick="saveLineupHandicaps()" style="font-size:0.95rem">Change Handicap?</button>
+    <button class="btn btn-secondary" onclick="copyLineup()">📋 Current Player List</button>
+  </div>
+  <div style="margin-top:8px">
+    <button class="btn btn-secondary" id="copy-email-btn-1" onclick="copyEmailList()" style="display:none">✉️ Current Player Email List</button>
+    <button class="btn btn-secondary" onclick="copyActiveRoster()" style="margin-top:8px">📋 Current Active Player List</button>
   </div>
   <div class="divider"></div>
   <button class="btn btn-primary" onclick="goToScores()">Enter Scores →</button>
@@ -630,7 +635,9 @@ function applySessionToUI(d){
     }
   }
   document.getElementById('select-count').textContent=`${selected.size} selected`;
-  document.getElementById('copy-lineup-btn').style.display=selected.size>=1?'block':'none';
+  const _show=selected.size>=1?'block':'none';
+  document.getElementById('copy-lineup-btn').style.display=_show;
+  const _eb=document.getElementById('copy-email-btn-1');if(_eb)_eb.style.display=_show;
 }
 function setDrumScrollValue(id,items,value){
   const col=document.getElementById(id);if(!col)return;
@@ -995,6 +1002,7 @@ function updateCount(){
   const show=selected.size>=1?'block':'none';
   document.getElementById('copy-lineup-btn').style.display=show;
   document.getElementById('copy-email-btn').style.display=show;
+  const btn1=document.getElementById('copy-email-btn-1');if(btn1)btn1.style.display=show;
   saveSelections();
 }
 
@@ -1138,12 +1146,7 @@ function buildReviewList(){
       :`<div class="group-badge" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3)">—</div>`;
     const sid=safeid(name);
     row.innerHTML=`<div class="rname">${name}</div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
-        <button style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:32px;height:20px;border-radius:5px 5px 0 0;font-size:0.75rem;cursor:pointer;line-height:1" onclick="adjustHcpReview('${name}',1);event.stopPropagation()">▲</button>
-        <input class="hcp-input" id="hcp-${sid}" type="number" min="0" max="54" value="${workingHcps[name]}" data-prev="${workingHcps[name]}"
-          onchange="onHcpChange('${name}',this)" aria-label="handicap">
-        <button style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:32px;height:20px;border-radius:0 0 5px 5px;font-size:0.75rem;cursor:pointer;line-height:1" onclick="adjustHcpReview('${name}',-1);event.stopPropagation()">▼</button>
-      </div>
+      <div class="phcp" style="color:rgba(255,255,255,0.55);font-size:0.8rem;min-width:44px;text-align:center">HCP ${workingHcps[name]??0}</div>
       ${badge}
       <button class="remove-btn" onclick="removeFromLineup('${name}')">✕</button>`;
     row.addEventListener('click',e=>{
@@ -1500,7 +1503,7 @@ function searchRoster(){
   const q=document.getElementById('search-input').value.toLowerCase().trim();
   const el=document.getElementById('search-results');el.innerHTML='';
   if(!q)return;
-  const matches=Object.keys(roster).filter(n=>n.toLowerCase().includes(q)&&!activePlayers.includes(n));
+  const matches=Object.keys(roster).filter(n=>n.toLowerCase().includes(q)&&!activePlayers.includes(n)&&!selected.has(n));
   matches.slice(0,6).forEach(name=>{
     const btn=document.createElement('button');
     btn.className='btn btn-secondary';
@@ -1513,11 +1516,20 @@ function searchRoster(){
 }
 
 function addFromRoster(name){
-  if(!activePlayers.includes(name)){
-    activePlayers.push(name);activePlayers.sort();
-    selected.add(name);workingHcps[name]=roster[name].hcp;
-    buildReviewList();buildPlayerGrid();closeModal();
-    saveSessionState();toast(`Added ${name}`);
+  if(!activePlayers.includes(name)&&!selected.has(name)){
+    if(currentScreen===0){
+      // Adding from page 0 — just select the player; activePlayers built on goToReview
+      selected.add(name);
+      if(!roster[name])roster[name]={hcp:0,email:null};
+      workingHcps[name]=roster[name].hcp;
+      buildPlayerGrid();closeModal();
+      toast(`Added ${name}`);
+    } else {
+      activePlayers.push(name);activePlayers.sort();
+      selected.add(name);workingHcps[name]=roster[name].hcp;
+      buildReviewList();buildPlayerGrid();closeModal();
+      saveSessionState();toast(`Added ${name}`);
+    }
   }
 }
 

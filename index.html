@@ -751,6 +751,7 @@ function init(){
   try{const s=localStorage.getItem('kevgolf_newplayers');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(!roster[n])roster[n]=d[n];});}}catch(e){}
   try{const s=localStorage.getItem('kevgolf_inactive');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(roster[n])roster[n].inactive=d[n];});}}catch(e){}
   loadSelections();buildPlayerGrid();updateDots(0);initDrums();
+  fetchWeather(eventDate);
   // Live sync – roster
   rosterDoc.onSnapshot(doc=>{
     if(!doc.exists)return;

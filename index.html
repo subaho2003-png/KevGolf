@@ -1051,7 +1051,7 @@ function copyLineup(){
 
 function openYahooCompose(emails){
   if(!emails.length){toast('No emails to send');return;}
-  window.location.href='ymail://mail/compose?bcc='+encodeURIComponent(emails.join(','));
+  window.location.href='ymail://mail/compose?bcc='+encodeURIComponent(emails.join(','))+'&t='+Date.now();
 }
 function copyEmailList(){
   const players=getPlayerListForCopy();

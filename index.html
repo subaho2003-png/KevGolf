@@ -1013,7 +1013,7 @@ function loadSelections(){try{const s=localStorage.getItem('kevgolf_selected');i
 
 function getPlayerListForCopy(){
   const onScreen0=document.getElementById('screen-0').classList.contains('active');
-  if(onScreen0)return Array.from(selected).sort();
+  if(onScreen0&&isAdmin)return Array.from(selected).sort();
   return activePlayers.length?activePlayers:Array.from(selected).sort();
 }
 function copyLineup(){

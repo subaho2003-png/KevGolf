@@ -18,7 +18,7 @@
   .nav-arrow.hidden{opacity:0;pointer-events:none}
   .step-dot{width:28px;height:5px;border-radius:3px;background:rgba(255,255,255,0.2);transition:background 0.3s}
   .step-dot.active{background:var(--gold)}.step-dot.done{background:var(--green-light)}
-  .screen{display:none;min-height:calc(100vh - 120px);padding:20px 16px 40px;max-width:600px;margin:0 auto}
+  .screen{display:none;min-height:cclualc(100vh - 120px);padding:20px 16px 40px;max-width:600px;margin:0 auto}
   .screen.active{display:block}
   .screen-title{font-family:'Bebas Neue',cursive;font-size:1.8rem;color:var(--gold-light);letter-spacing:2px;margin-bottom:6px}
   .screen-sub{color:rgba(255,255,255,0.85);font-size:0.8rem;letter-spacing:1px;margin-bottom:20px}
@@ -1011,6 +1011,11 @@ function updateCount(){
 function saveSelections(){try{localStorage.setItem('kevgolf_selected',JSON.stringify(Array.from(selected)));}catch(e){}}
 function loadSelections(){try{const s=localStorage.getItem('kevgolf_selected');if(s)JSON.parse(s).forEach(n=>{if(roster[n])selected.add(n);});}catch(e){}}
 
+function getPlayerListForCopy(){
+  const onScreen0=document.getElementById('screen-0').classList.contains('active');
+  if(onScreen0)return Array.from(selected).sort();
+  return activePlayers.length?activePlayers:Array.from(selected).sort();
+}
 function copyLineup(){
   const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   let txt=`KEVGOLF — PLAYER LIST\n${date}\n`+'='.repeat(36)+'\n\n';
@@ -1019,7 +1024,7 @@ function copyLineup(){
     if(weatherData)txt+=`${getWeatherLine()}\n`;
     txt+='\n';
   }
-  const players=activePlayers.length?activePlayers:Array.from(selected).sort();
+  const players=getPlayerListForCopy();
   const grouped=players.length&&players.some(n=>playerGroups[n]);
   if(grouped){
     for(let g=1;g<=numGroups;g++){
@@ -1045,7 +1050,7 @@ function copyLineup(){
 }
 
 function copyEmailList(){
-  const players=activePlayers.length?activePlayers:Array.from(selected).sort();
+  const players=getPlayerListForCopy();
   const emails=players.filter(n=>roster[n]&&roster[n].email&&!roster[n].inactive).map(n=>roster[n].email);
   if(!emails.length){toast('No emails to copy');return;}
   const txt=emails.join(', ');
@@ -1689,7 +1694,7 @@ function loadAdminHcpStats(){
     Object.keys(roster).forEach(n=>{hcpHistory[n]=[roster[n].hcp];});
     if(doc.exists&&doc.data().entries){
       doc.data().entries.forEach(e=>{
-        if(e.type==='hcp_posted'){
+        if(e.type==='hcp_posted'||e.type==='hcp_change'){
           if(!hcpHistory[e.name])hcpHistory[e.name]=[];
           hcpHistory[e.name].push(e.oldHcp,e.newHcp);
         }

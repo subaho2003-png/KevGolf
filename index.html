@@ -260,8 +260,8 @@
   <div class="player-grid" id="player-grid"></div>
   <button class="btn btn-primary" onclick="goToReview()" style="margin-top:20px">Review Lineup / Create Groupings →</button>
   <button class="btn btn-secondary" id="copy-lineup-btn" onclick="copyLineup()" style="margin-top:8px;display:none">📋 Current Player List</button>
-  <button class="btn btn-secondary" id="copy-email-btn" onclick="copyEmailList()" style="margin-top:8px;display:none">✉️ Current Player Email List</button>
-  <button class="btn btn-secondary" onclick="copyActiveRosterEmails()" style="margin-top:8px">✉️ Active Player Email List</button>
+  <button class="btn btn-secondary" id="copy-email-btn" onclick="copyEmailList()" style="margin-top:8px;display:none">📧 Email Current Players</button>
+  <button class="btn btn-secondary" onclick="copyActiveRosterEmails()" style="margin-top:8px">📧 Email Active Players</button>
 </div>
 
 <div class="screen" id="screen-1">
@@ -281,8 +281,8 @@
     <button class="btn btn-secondary" onclick="copyLineup()">📋 Current Player List</button>
   </div>
   <div style="margin-top:8px">
-    <button class="btn btn-secondary" id="copy-email-btn-1" onclick="copyEmailList()" style="display:none">✉️ Current Player Email List</button>
-    <button class="btn btn-secondary" onclick="copyActiveRosterEmails()" style="margin-top:8px">✉️ Active Player Email List</button>
+    <button class="btn btn-secondary" id="copy-email-btn-1" onclick="copyEmailList()" style="display:none">📧 Email Current Players</button>
+    <button class="btn btn-secondary" onclick="copyActiveRosterEmails()" style="margin-top:8px">📧 Email Active Players</button>
   </div>
   <div class="divider"></div>
   <button class="btn btn-primary" onclick="goToScores()">Enter Scores →</button>
@@ -1052,12 +1052,8 @@ function copyLineup(){
 function copyEmailList(){
   const players=getPlayerListForCopy();
   const emails=players.filter(n=>roster[n]&&roster[n].email&&!roster[n].inactive).map(n=>roster[n].email);
-  if(!emails.length){toast('No emails to copy');return;}
-  const txt=emails.join('\n');
-  navigator.clipboard.writeText(txt).then(()=>toast('✓ Email list copied!')).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
-    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Email list copied!');
-  });
+  if(!emails.length){toast('No emails to send');return;}
+  window.location.href='mailto:?bcc='+encodeURIComponent(emails.join(','));
 }
 
 function copyActiveRoster(){
@@ -1076,11 +1072,7 @@ function copyActiveRoster(){
 function copyActiveRosterEmails(){
   const emails=Object.keys(roster).filter(n=>!roster[n].inactive&&roster[n].email).sort().map(n=>roster[n].email);
   if(!emails.length){toast('No emails found for active players');return;}
-  const txt=emails.join('\n');
-  navigator.clipboard.writeText(txt).then(()=>toast('✓ Active player emails copied!')).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
-    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Active player emails copied!');
-  });
+  window.location.href='mailto:?bcc='+encodeURIComponent(emails.join(','));
 }
 
 function setNetZero(name){

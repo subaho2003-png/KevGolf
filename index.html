@@ -1053,7 +1053,7 @@ function copyEmailList(){
   const players=getPlayerListForCopy();
   const emails=players.filter(n=>roster[n]&&roster[n].email&&!roster[n].inactive).map(n=>roster[n].email);
   if(!emails.length){toast('No emails to copy');return;}
-  const txt=emails.join(', ');
+  const txt=emails.join('\n');
   navigator.clipboard.writeText(txt).then(()=>toast('✓ Email list copied!')).catch(()=>{
     const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
     document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Email list copied!');
@@ -1076,7 +1076,7 @@ function copyActiveRoster(){
 function copyActiveRosterEmails(){
   const emails=Object.keys(roster).filter(n=>!roster[n].inactive&&roster[n].email).sort().map(n=>roster[n].email);
   if(!emails.length){toast('No emails found for active players');return;}
-  const txt=emails.join(', ');
+  const txt=emails.join('\n');
   navigator.clipboard.writeText(txt).then(()=>toast('✓ Active player emails copied!')).catch(()=>{
     const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
     document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Active player emails copied!');

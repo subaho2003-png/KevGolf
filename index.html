@@ -1052,7 +1052,7 @@ function copyLineup(){
 function openYahooCompose(emails){
   if(!emails.length){toast('No emails to send');return;}
   const a=document.createElement('a');
-  a.href='ymail://mail/compose?bcc='+encodeURIComponent(emails.join(','));
+  a.href='ymail://mail/compose?bcc='+encodeURIComponent(emails.join(','))+'&_='+Date.now();
   document.body.appendChild(a);
   a.click();
   setTimeout(()=>document.body.removeChild(a),500);

@@ -1049,11 +1049,24 @@ function copyLineup(){
   });
 }
 
+function openYahooCompose(emails){
+  if(!emails.length){toast('No emails to send');return;}
+  const bcc=emails.join(',');
+  const ymailUrl='ymail://mail/compose?bcc='+encodeURIComponent(bcc);
+  const fallbackUrl='mailto:?bcc='+encodeURIComponent(bcc);
+  let appOpened=false;
+  const onBlur=()=>{appOpened=true;};
+  window.addEventListener('blur',onBlur,{once:true});
+  window.location.href=ymailUrl;
+  setTimeout(()=>{
+    window.removeEventListener('blur',onBlur);
+    if(!appOpened)window.location.href=fallbackUrl;
+  },1500);
+}
 function copyEmailList(){
   const players=getPlayerListForCopy();
   const emails=players.filter(n=>roster[n]&&roster[n].email&&!roster[n].inactive).map(n=>roster[n].email);
-  if(!emails.length){toast('No emails to send');return;}
-  window.location.href='mailto:?bcc='+encodeURIComponent(emails.join(','));
+  openYahooCompose(emails);
 }
 
 function copyActiveRoster(){
@@ -1071,8 +1084,7 @@ function copyActiveRoster(){
 
 function copyActiveRosterEmails(){
   const emails=Object.keys(roster).filter(n=>!roster[n].inactive&&roster[n].email).sort().map(n=>roster[n].email);
-  if(!emails.length){toast('No emails found for active players');return;}
-  window.location.href='mailto:?bcc='+encodeURIComponent(emails.join(','));
+  openYahooCompose(emails);
 }
 
 function setNetZero(name){

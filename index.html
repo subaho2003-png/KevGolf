@@ -18,7 +18,7 @@
   .nav-arrow.hidden{opacity:0;pointer-events:none}
   .step-dot{width:28px;height:5px;border-radius:3px;background:rgba(255,255,255,0.2);transition:background 0.3s}
   .step-dot.active{background:var(--gold)}.step-dot.done{background:var(--green-light)}
-  .screen{display:none;min-height:cclualc(100vh - 120px);padding:20px 16px 40px;max-width:600px;margin:0 auto}
+  .screen{display:none;min-height:cclugcpushalc(100vh - 120px);padding:20px 16px 40px;max-width:600px;margin:0 auto}
   .screen.active{display:block}
   .screen-title{font-family:'Bebas Neue',cursive;font-size:1.8rem;color:var(--gold-light);letter-spacing:2px;margin-bottom:6px}
   .screen-sub{color:rgba(255,255,255,0.85);font-size:0.8rem;letter-spacing:1px;margin-bottom:20px}
@@ -600,6 +600,7 @@ function saveSessionState(){
 }
 function applySessionToUI(d){
   selectedCourse=d.course||'';
+  ctpCount=selectedCourse==='Gator Trace'?3:4;
   teeHour=d.teeHour||8;teeMin=d.teeMin!==undefined?d.teeMin:0;teeAMPM=d.teeAMPM||'AM';
   eventDay=d.eventDay||'Tuesday';eventDate=d.eventDate||'';
   selected=new Set(d.selected||[]);

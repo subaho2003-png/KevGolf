@@ -523,6 +523,8 @@ let grossScores={},lastResults=null,proposedHcps={},workingHcps={};
 let selectedCourse='',teeHour=8,teeMin=0,teeAMPM='AM';
 let eventDay='Tuesday',eventDate='2026-04-05';
 const DRUM_H=44;
+const PAR3_HOLES={'Indian Hills':[4,8,11,17],'Gator Trace':[9,13,17],'Fairwinds':[5,8,11,14],'Meadowwood':[4,7,11,15]};
+function getCtpHoles(){const known=PAR3_HOLES[selectedCourse];if(known)return known;return Array.from({length:ctpCount},(_,i)=>i+1);}
 let playerGroups={},activeGroup=0,numGroups=0;
 let secretSeq=[],secretTimer=null;
 const SECRET_CODE=[4,3,2,1];
@@ -894,10 +896,10 @@ function saveRoundWinnings(){
     tied.forEach(n=>{if(each>0)roundPayouts.push({name:n,amount:each,type:'place',place,net:parseFloat(net.toFixed(1))});});
     place+=tied.length;
   });
-  for(let h=1;h<=ctpCount;h++){
+  getCtpHoles().forEach(h=>{
     const w=ctpWinners[h];
     if(w&&ctpPerWinner>0)roundPayouts.push({name:w,amount:ctpPerWinner,type:'ctp',hole:h});
-  }
+  });
   const roundEntry={
     date:eventDate||new Date().toISOString().slice(0,10),
     day:eventDay||'',
@@ -915,10 +917,10 @@ function saveRoundWinnings(){
     Object.entries(lastResults.playerPayout).forEach(([n,amt])=>{
       if(amt>0){if(!data.players[n])data.players[n]={};data.players[n][year]=(data.players[n][year]||0)+amt;}
     });
-    for(let h=1;h<=ctpCount;h++){
+    getCtpHoles().forEach(h=>{
       const w=ctpWinners[h];
       if(w&&ctpPerWinner>0){if(!data.players[w])data.players[w]={};data.players[w][year]=(data.players[w][year]||0)+ctpPerWinner;}
-    }
+    });
     data.rounds.push(roundEntry);
     tx.set(winningsDoc,data);
   }).catch(e=>console.warn('Winnings save error:',e));
@@ -1285,9 +1287,10 @@ function goToCTP(){
 function renderCTPHoles(){
   const list=document.getElementById('ctp-holes-list');
   list.innerHTML='';
-  document.getElementById('ctp-count').textContent=ctpCount;
+  const holes=getCtpHoles();
+  document.getElementById('ctp-count').textContent=holes.length;
   const opts=activePlayers.map(n=>`<option value="${n}">${n}</option>`).join('');
-  for(let h=1;h<=ctpCount;h++){
+  holes.forEach(h=>{
     const cur=ctpWinners[h]||'';
     const div=document.createElement('div');
     div.className='ctp-hole-row';
@@ -1297,7 +1300,7 @@ function renderCTPHoles(){
       </select>`;
     list.appendChild(div);
     if(cur)setTimeout(()=>{const el=document.getElementById(`ctp-hole-${h}`);if(el)el.value=cur;},10);
-  }
+  });
 }
 
 function changeCTP(delta){requireAdmin(()=>{ctpCount=Math.max(0,ctpCount+delta);renderCTPHoles();});}
@@ -1357,8 +1360,9 @@ function _calcResults(){
   if(scored.length<2){toast('Enter at least 2 scores');return;}
   const count=activePlayers.length;
   const totalPot=count*15,ctpPot=count*5,placePot=totalPot-ctpPot;
-  const perHoleCTP=ctpCount>0?Math.floor(ctpPot/ctpCount):0;
-  const ctpWinnerCount=ctpCount>0?Object.entries(ctpWinners).filter(([h,w])=>parseInt(h)<=ctpCount&&w).length:0;
+  const ctpHoles=getCtpHoles();
+  const perHoleCTP=ctpHoles.length>0?Math.floor(ctpPot/ctpHoles.length):0;
+  const ctpWinnerCount=ctpHoles.filter(h=>ctpWinners[h]).length;
   const ctpPerWinner=ctpWinnerCount>0?Math.floor(ctpPot/ctpWinnerCount):0;
   const nets={};scored.forEach(n=>{nets[n]=grossScores[n]-workingHcps[n];});
   const sorted=Object.entries(nets).sort((a,b)=>b[1]-a[1]);
@@ -1389,11 +1393,12 @@ function _calcResults(){
 
 function renderResults(r){
   const{count,totalPot,ctpPot,placePot,perHoleCTP,ctpPerWinner,ctpWinnerCount,nets,groups,uniqueNets,playerPayout}=r;
+  const ctpHoles=getCtpHoles();
   document.getElementById('pool-summary').innerHTML=`
     <div class="pool-total">$${totalPot}</div>
     <div class="pool-sub">TOTAL POT · ${count} PLAYERS × $15</div>
     <div class="pot-row"><span class="pot-label">Place Payouts</span><span class="pot-value">$${placePot}</span></div>
-    <div class="pot-row"><span class="pot-label">CTP Pool (${ctpCount} holes)</span><span class="pot-value">$${ctpPot} · $${perHoleCTP}/hole</span></div>`;
+    <div class="pot-row"><span class="pot-label">CTP Pool (${ctpHoles.length} holes)</span><span class="pot-value">$${ctpPot} · $${perHoleCTP}/hole</span></div>`;
   const pr=document.getElementById('place-results');pr.innerHTML='';
   let place=1;
   uniqueNets.forEach(net=>{
@@ -1410,24 +1415,24 @@ function renderResults(r){
     place+=tied.length;
   });
   const cr=document.getElementById('ctp-results');cr.innerHTML='';
-  if(ctpCount===0){
+  if(ctpHoles.length===0){
     cr.innerHTML='<div class="result-row"><div class="result-name" style="color:rgba(255,255,255,0.4)">No CTP holes this round</div></div>';
   }else{
-    const redistributed=ctpWinnerCount>0&&ctpWinnerCount<ctpCount;
+    const redistributed=ctpWinnerCount>0&&ctpWinnerCount<ctpHoles.length;
     if(redistributed){
       const note=document.createElement('div');
       note.style.cssText='padding:8px 16px;color:var(--gold-light);font-size:0.8rem;font-weight:600;background:rgba(212,168,67,0.1);border-bottom:1px solid rgba(212,168,67,0.2)';
       note.textContent=`$${ctpPot} pot split among ${ctpWinnerCount} winner${ctpWinnerCount>1?'s':''} = $${ctpPerWinner} each`;
       cr.appendChild(note);
     }
-    for(let h=1;h<=ctpCount;h++){
+    ctpHoles.forEach(h=>{
       const winner=ctpWinners[h]||'';
       const row=document.createElement('div');row.className='result-row';
       row.innerHTML=`<div class="place-num" style="font-size:1rem;color:var(--gold-light)">H${h}</div>
         <div class="result-name">${winner||'<span style="color:rgba(255,255,255,0.35)">None</span>'}</div>
         <div class="result-payout">${winner?'$'+ctpPerWinner:'—'}</div>`;
       cr.appendChild(row);
-    }
+    });
   }
   const hr=document.getElementById('hcp-results');hr.innerHTML='';
   activePlayers.slice().sort().forEach(name=>{
@@ -1477,10 +1482,11 @@ function copyResults(){
     });place+=tied.length;
   });
   txt+='\n── CLOSEST TO PIN ──\n';
-  if(ctpCount===0){txt+='No CTP holes this round\n';}
+  const _ctpHoles=getCtpHoles();
+  if(_ctpHoles.length===0){txt+='No CTP holes this round\n';}
   else{
-    if(ctpWinnerCount>0&&ctpWinnerCount<ctpCount)txt+=`($${ctpPot} pot ÷ ${ctpWinnerCount} winner${ctpWinnerCount>1?'s':''} = $${ctpPerWinner} each)\n`;
-    for(let h=1;h<=ctpCount;h++){const w=ctpWinners[h]||'';txt+=`Hole ${h}: ${(w||'None').padEnd(22)} ${w?'$'+ctpPerWinner:'—'}\n`;}
+    if(ctpWinnerCount>0&&ctpWinnerCount<_ctpHoles.length)txt+=`($${ctpPot} pot ÷ ${ctpWinnerCount} winner${ctpWinnerCount>1?'s':''} = $${ctpPerWinner} each)\n`;
+    _ctpHoles.forEach(h=>{const w=ctpWinners[h]||'';txt+=`Hole ${h}: ${(w||'None').padEnd(22)} ${w?'$'+ctpPerWinner:'—'}\n`;});
   }
   txt+='\n── HANDICAP UPDATES ──\n';
   activePlayers.slice().sort().forEach(name=>{

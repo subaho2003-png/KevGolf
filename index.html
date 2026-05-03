@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>KevGolf</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -403,16 +406,14 @@
     <div class="field-label">Email Address</div>
     <input class="text-input" id="edit-email" type="email" placeholder="email@example.com" autocomplete="off">
     <div class="field-label">Email Status</div>
-    <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
-      <label class="toggle-row" for="edit-inactive" style="flex:1;margin:0">
-        <input class="toggle-check" type="checkbox" id="edit-inactive">
-        <div>
-          <div style="color:rgba(255,255,255,0.85);font-size:0.9rem;font-weight:700">Inactive</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:0.72rem;margin-top:2px">No emails sent · Name shown in gray italic</div>
-        </div>
-      </label>
-      <button class="btn" onclick="deletePlayer()" style="margin:0;background:rgba(180,40,30,0.75);border:2px solid #fff;color:#fff;padding:8px 14px;font-size:0.85rem;white-space:nowrap">🗑 Delete Player</button>
-    </div>
+    <label class="toggle-row" for="edit-inactive">
+      <input class="toggle-check" type="checkbox" id="edit-inactive">
+      <div>
+        <div style="color:rgba(255,255,255,0.85);font-size:0.9rem;font-weight:700">Inactive</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:0.72rem;margin-top:2px">No emails sent · Name shown in gray italic</div>
+      </div>
+    </label>
+    <button class="btn" onclick="deletePlayer()" style="margin-top:10px;width:100%;background:rgba(180,40,30,0.75);border:2px solid #fff;color:#fff;padding:10px;font-size:0.9rem;font-weight:700">🗑 Delete Player</button>
     <button class="btn btn-primary" onclick="savePlayerEdit()" style="margin-top:14px">Save</button>
     <button class="btn btn-secondary" onclick="closePlayerEdit()" style="margin-top:8px">Cancel</button>
   </div>

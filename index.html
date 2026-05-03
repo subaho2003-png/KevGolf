@@ -7,9 +7,9 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
   :root{--green:#1a5c2a;--green-light:#2d8a45;--green-dark:#0e3318;--gold:#d4a843;--gold-light:#f0c96a;--text-dark:#1a1a1a;--red:#c0392b;}
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  input,select,textarea{font-size:16px!important}
-  body{font-family:'DM Sans',sans-serif;background:var(--green-dark);color:var(--text-dark);min-height:100vh;overflow-x:hidden}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  input,select,textarea{font-size:16px!important;touch-action:manipulation}
+  body{font-family:'DM Sans',sans-serif;background:var(--green-dark);color:var(--text-dark);min-height:100vh;overflow-x:hidden;touch-action:manipulation}
   header{background:linear-gradient(135deg,var(--green-dark) 0%,var(--green) 100%);padding:20px 20px 16px;text-align:center;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
   header h1{font-family:'Bebas Neue',cursive;font-size:2.8rem;color:var(--gold);letter-spacing:4px;line-height:1;text-shadow:2px 2px 8px rgba(0,0,0,0.5)}
   header p{color:rgba(255,255,255,0.7);font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;margin-top:4px}
@@ -238,7 +238,7 @@
     <button class="course-btn" onclick="setEventDay(this,'Sunday')">Sun</button>
   </div>
   <div class="field-label" style="margin-top:16px">Event Date</div>
-  <input class="date-input" type="date" id="event-date-input" value="2026-04-05" oninput="onEventDateChange(this.value)" onchange="onEventDateChange(this.value)">
+  <input class="date-input" type="date" id="event-date-input" oninput="onEventDateChange(this.value)" onchange="onEventDateChange(this.value)">
   <div class="weather-widget" id="weather-widget">
     <div id="weather-loading" class="w-loading">Fetching forecast...</div>
     <div id="weather-content" style="display:none">
@@ -254,8 +254,6 @@
       </div>
       <div class="w-divider"></div>
       <div class="w-stats">
-        <div class="w-stat"><div class="w-val" id="w-buoy-wind">—</div><div class="w-src">NDBC 41114</div></div>
-        <div class="w-stat"><div class="w-val" id="w-buoy-wave">—</div><div class="w-src">NDBC 41114 Waves</div></div>
         <div class="w-stat"><div class="w-val" id="w-rain-in">—</div><div class="w-src">Open-Meteo Rain</div></div>
         <div class="w-stat"><div class="w-val" id="w-solunar">—</div><div class="w-src">Solunar</div></div>
       </div>
@@ -347,6 +345,7 @@
   <button class="btn btn-secondary" onclick="copyEmailList()" style="margin-top:4px">📧 Email Current Players</button>
   <button class="btn btn-secondary" onclick="copyActiveRosterEmails()" style="margin-top:4px">📧 Email Active Players</button>
   <button class="btn btn-secondary" onclick="newRound()" style="margin-top:4px">Start New Round ↺</button>
+  <button class="btn btn-primary" onclick="sendResults()" style="margin-top:4px">📧 Send Results</button>
 </div>
 
 <div class="modal-overlay" id="add-modal">
@@ -410,13 +409,16 @@
     <div class="field-label">Email Address</div>
     <input class="text-input" id="edit-email" type="email" placeholder="email@example.com" autocomplete="off">
     <div class="field-label">Email Status</div>
-    <label class="toggle-row" for="edit-inactive">
-      <input class="toggle-check" type="checkbox" id="edit-inactive">
-      <div>
-        <div style="color:rgba(255,255,255,0.85);font-size:0.9rem;font-weight:700">Inactive</div>
-        <div style="color:rgba(255,255,255,0.4);font-size:0.72rem;margin-top:2px">No emails sent · Name shown in gray italic</div>
-      </div>
-    </label>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+      <label class="toggle-row" for="edit-inactive" style="flex:1;margin:0">
+        <input class="toggle-check" type="checkbox" id="edit-inactive">
+        <div>
+          <div style="color:rgba(255,255,255,0.85);font-size:0.9rem;font-weight:700">Inactive</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:0.72rem;margin-top:2px">No emails sent · Name shown in gray italic</div>
+        </div>
+      </label>
+      <button class="btn" onclick="deletePlayer()" style="margin:0;background:rgba(180,40,30,0.75);border:2px solid #fff;color:#fff;padding:8px 14px;font-size:0.85rem;white-space:nowrap">🗑 Delete Player</button>
+    </div>
     <button class="btn btn-primary" onclick="savePlayerEdit()" style="margin-top:14px">Save</button>
     <button class="btn btn-secondary" onclick="closePlayerEdit()" style="margin-top:8px">Cancel</button>
   </div>
@@ -438,6 +440,19 @@
 </div>
 
 <script>
+// Block double-tap zoom and pinch zoom — CSS touch-action alone is unreliable on iOS Safari
+(function(){
+  let _lastTap=0;
+  document.addEventListener('touchend',function(e){
+    const now=Date.now();
+    if(now-_lastTap<300){e.preventDefault();}
+    _lastTap=now;
+  },{passive:false,capture:true});
+  document.addEventListener('touchstart',function(e){
+    if(e.touches.length>1){e.preventDefault();}
+  },{passive:false,capture:true});
+})();
+
 const firebaseConfig={
   apiKey:"AIzaSyCxfowtpJ780K1rydk8QYrXX0zWbKaTdvo",
   authDomain:"kevgolf-2cbb3.firebaseapp.com",
@@ -533,7 +548,7 @@ const payouts={
 let selected=new Set(),activePlayers=[],ctpCount=4,ctpWinners={};
 let grossScores={},lastResults=null,proposedHcps={},workingHcps={};
 let selectedCourse='',teeHour=8,teeMin=0,teeAMPM='AM';
-let eventDay='Tuesday',eventDate='2026-04-05';
+let eventDay='Tuesday',eventDate=new Date().toISOString().slice(0,10);
 const DRUM_H=44;
 const PAR3_HOLES={'Indian Hills':[4,8,11,17],'Gator Trace':[9,13,17],'Fairwinds':[5,8,11,14],'Meadowwood':[4,7,11,15]};
 function getCtpHoles(){const known=PAR3_HOLES[selectedCourse];if(known)return known;return Array.from({length:ctpCount},(_,i)=>i+1);}
@@ -605,21 +620,23 @@ function lockAdmin(){
 function saveSessionState(){
   if(!isAdmin)return;
   sessionDoc.set({
-    course:selectedCourse,teeHour,teeMin,teeAMPM,
+    course:selectedCourse,teeHour,teeMin,teeAMPM,ctpCount,
     eventDay,eventDate,
     selected:Array.from(selected),
     activePlayers,playerGroups,workingHcps,numGroups,
+    grossScores,ctpWinners,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   }).catch(e=>console.warn('Session save error:',e));
 }
 function applySessionToUI(d){
   selectedCourse=d.course||'';
-  ctpCount=selectedCourse==='Gator Trace'?3:4;
+  ctpCount=d.ctpCount!==undefined?d.ctpCount:(selectedCourse==='Gator Trace'?3:4);
   teeHour=d.teeHour||8;teeMin=d.teeMin!==undefined?d.teeMin:0;teeAMPM=d.teeAMPM||'AM';
   eventDay=d.eventDay||'Tuesday';eventDate=d.eventDate||'';
   selected=new Set(d.selected||[]);
   activePlayers=d.activePlayers||[];
   playerGroups=d.playerGroups||{};workingHcps=d.workingHcps||{};numGroups=d.numGroups||0;
+  grossScores=d.grossScores||{};ctpWinners=d.ctpWinners||{};
   // Course buttons
   document.querySelectorAll('.course-picker .course-btn').forEach(b=>{
     b.classList.toggle('selected',b.textContent.trim()===selectedCourse);
@@ -654,6 +671,12 @@ function applySessionToUI(d){
   const _show=selected.size>=1?'block':'none';
   document.getElementById('copy-lineup-btn').style.display=_show;
   const _eb=document.getElementById('copy-email-btn-1');if(_eb)_eb.style.display=_show;
+  // Update score screen if visible
+  const s2=document.getElementById('screen-2');
+  if(s2&&s2.classList.contains('active')&&activePlayers.length>0)buildScoreList();
+  // Update CTP screen if visible
+  const s3=document.getElementById('screen-3');
+  if(s3&&s3.classList.contains('active'))renderCTPHoles();
 }
 function setDrumScrollValue(id,items,value){
   const col=document.getElementById(id);if(!col)return;
@@ -662,7 +685,7 @@ function setDrumScrollValue(id,items,value){
 }
 function syncDrumsToState(){
   const hours=['1','2','3','4','5','6','7','8','9','10','11','12'];
-  const mins=['00','05','10','15','20','25','30','35','40','45','50','55','60'];
+  const mins=['00','05','10','15','20','25','30','35','40','45','50','55'];
   setDrumScrollValue('drum-hour',hours,teeHour);
   setDrumScrollValue('drum-min',mins,String(teeMin).padStart(2,'0'));
   setDrumScrollValue('drum-ampm',['AM','PM'],teeAMPM);
@@ -732,11 +755,6 @@ function fetchWeather(date){
     // Solunar rating for event date
     const sol=calcSolunar(new Date(date+'T12:00:00'));
     document.getElementById('w-solunar').textContent=sol.stars;
-    // NDBC buoy — real-time marine conditions
-    fetchNDBC().then(ndbc=>{
-      document.getElementById('w-buoy-wind').textContent=ndbc?.windSpeed!=null?`${ndbc.windSpeed} mph ${ndbc.windDir}`:'—';
-      document.getElementById('w-buoy-wave').textContent=ndbc?.waveHeight!=null?`${ndbc.waveHeight} ft`:'—';
-    });
     loading.style.display='none';
     document.getElementById('weather-content').style.display='block';
     // Update round-info on screen 1 if visible
@@ -750,26 +768,7 @@ function windDegToDir(deg){
   if(deg==null)return'';
   return['N','NE','E','SE','S','SW','W','NW'][Math.round(deg/45)%8];
 }
-async function fetchNDBC(){
-  try{
-    const r=await fetch('https://www.ndbc.noaa.gov/data/realtime2/41114.txt');
-    const txt=await r.text();
-    const lines=txt.trim().split('\n');
-    const headers=lines[0].replace(/^#\s*/,'').trim().split(/\s+/);
-    for(let i=2;i<Math.min(lines.length,8);i++){
-      if(lines[i].startsWith('#'))continue;
-      const vals=lines[i].trim().split(/\s+/);
-      const get=n=>{const idx=headers.indexOf(n);return idx>=0&&vals[idx]!=='MM'?parseFloat(vals[idx]):null;};
-      const wspd=get('WSPD'),wvht=get('WVHT'),wdir=get('WDIR');
-      return{
-        windSpeed:wspd!=null?Math.round(wspd*2.237):null,
-        windDir:wdir!=null?windDegToDir(wdir):'',
-        waveHeight:wvht!=null?(wvht*3.281).toFixed(1):null
-      };
-    }
-  }catch(e){console.warn('NDBC fetch failed:',e);}
-  return null;
-}
+
 function calcSolunar(date){
   const y=date.getFullYear(),m=date.getMonth()+1,d=date.getDate();
   const jd=367*y-Math.floor(7*(y+Math.floor((m+9)/12))/4)+Math.floor(275*m/9)+d+1721013.5;
@@ -806,6 +805,8 @@ function init(){
   try{const s=localStorage.getItem('kevgolf_newplayers');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(!roster[n])roster[n]=d[n];});}}catch(e){}
   try{const s=localStorage.getItem('kevgolf_inactive');if(s){const d=JSON.parse(s);Object.keys(d).forEach(n=>{if(roster[n])roster[n].inactive=d[n];});}}catch(e){}
   loadSelections();buildPlayerGrid();updateDots(0);initDrums();
+  const _dateEl=document.getElementById('event-date-input');
+  if(_dateEl&&!_dateEl.value)_dateEl.value=eventDate;
   fetchWeather(eventDate);
   // Live sync – roster
   rosterDoc.onSnapshot(doc=>{
@@ -839,7 +840,7 @@ function selectCourse(btn,name,ctp){
 
 function initDrums(){
   const hours=['1','2','3','4','5','6','7','8','9','10','11','12'];
-  const mins=['00','05','10','15','20','25','30','35','40','45','50','55','60'];
+  const mins=['00','05','10','15','20','25','30','35','40','45','50','55'];
   const ampms=['AM','PM'];
   buildDrum('drum-hour',hours,7,v=>{teeHour=parseInt(v);if(isAdmin)saveSessionState();});
   buildDrum('drum-min',mins,0,v=>{teeMin=parseInt(v);if(isAdmin)saveSessionState();});
@@ -1046,6 +1047,22 @@ function savePlayerEdit(){
   });
 }
 
+function deletePlayer(){
+  requireAdmin(()=>{
+    const name=playerEditTarget;
+    if(!confirm(`Permanently delete ${name}? This cannot be undone.`))return;
+    delete roster[name];
+    selected.delete(name);
+    activePlayers=activePlayers.filter(n=>n!==name);
+    delete workingHcps[name];delete playerGroups[name];
+    saveAllRosterData();
+    if(isAdmin)saveSessionState();
+    buildPlayerGrid();
+    closePlayerEdit();
+    toast(`✓ ${name} deleted`);
+  });
+}
+
 function togglePlayer(name,card){
   requireAdmin(()=>{
     if(selected.has(name)){selected.delete(name);card.classList.remove('selected');}
@@ -1068,7 +1085,7 @@ function loadSelections(){try{const s=localStorage.getItem('kevgolf_selected');i
 
 function getPlayerListForCopy(){
   const onScreen0=document.getElementById('screen-0').classList.contains('active');
-  if(onScreen0&&isAdmin)return Array.from(selected).sort();
+  if(onScreen0)return Array.from(selected).sort();
   return activePlayers.length?activePlayers:Array.from(selected).sort();
 }
 function copyLineup(){
@@ -1104,18 +1121,20 @@ function copyLineup(){
   });
 }
 
-function openYahooCompose(emails){
+function openYahooCompose(emails,subject,body){
   if(!emails.length){toast('No emails to send');return;}
+  const bcc=encodeURIComponent(emails.join(','));
+  const url='ymail://mail/compose?bcc='+bcc+(subject?'&subject='+encodeURIComponent(subject):'')+(body?'&body='+encodeURIComponent(body):'')+'&_='+Date.now();
   const a=document.createElement('a');
-  a.href='ymail://mail/compose?bcc='+encodeURIComponent(emails.join(','))+'&_='+Date.now();
+  a.href=url;
   document.body.appendChild(a);
   a.click();
   setTimeout(()=>document.body.removeChild(a),500);
-  toast('If Yahoo Mail just opened, come back & tap again');
+  toast('Opening Yahoo Mail…');
 }
 function copyEmailList(){
   const players=getPlayerListForCopy();
-  const emails=players.filter(n=>roster[n]&&roster[n].email&&!roster[n].inactive).map(n=>roster[n].email);
+  const emails=players.filter(n=>roster[n]&&roster[n].email).map(n=>roster[n].email);
   openYahooCompose(emails);
 }
 
@@ -1347,7 +1366,7 @@ function renderCTPHoles(){
     const div=document.createElement('div');
     div.className='ctp-hole-row';
     div.innerHTML=`<div class="ctp-hole-label">Hole ${h} Winner</div>
-      <select class="ctp-select" id="ctp-hole-${h}" onchange="ctpWinners[${h}]=this.value">
+      <select class="ctp-select" id="ctp-hole-${h}" onchange="ctpWinners[${h}]=this.value;if(isAdmin)saveSessionState()">
         <option value="">None</option>${opts}
       </select>`;
     list.appendChild(div);
@@ -1355,7 +1374,7 @@ function renderCTPHoles(){
   });
 }
 
-function changeCTP(delta){requireAdmin(()=>{ctpCount=Math.max(0,ctpCount+delta);renderCTPHoles();});}
+function changeCTP(delta){requireAdmin(()=>{ctpCount=Math.max(0,ctpCount+delta);renderCTPHoles();saveSessionState();});}
 
 function buildScoreList(){
   const list=document.getElementById('score-list');
@@ -1388,11 +1407,15 @@ function buildScoreList(){
 
 function safeid(n){return n.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');}
 
+let _saveST=null;
+function debounceSave(){clearTimeout(_saveST);_saveST=setTimeout(saveSessionState,800);}
+
 function updateNet(name,val){
   const hcp=workingHcps[name];
   const el=document.getElementById(`net-${safeid(name)}`);
   if(val&&!isNaN(val)){grossScores[name]=parseFloat(val);el.textContent='Net '+(parseFloat(val)-hcp).toFixed(1);}
   else{delete grossScores[name];el.textContent='—';}
+  if(isAdmin)debounceSave();
 }
 
 function adjustScore(name,delta){
@@ -1489,7 +1512,7 @@ function renderResults(r){
   const hr=document.getElementById('hcp-results');hr.innerHTML='';
   activePlayers.slice().sort().forEach(name=>{
     const oldH=workingHcps[name],newH=proposedHcps[name],diff=newH-oldH;
-    const newColor=diff>0?'#1a8a1a':diff<0?'#cc0000':'#111111';
+    const newColor=diff>0?'#1a8a1a':diff<0?'#cc0000':'rgba(255,255,255,0.85)';
     const row=document.createElement('div');row.className='hcp-update-row';
     row.innerHTML=`<div class="hcp-name">${name}</div>
       <div class="hcp-old">${oldH}</div>
@@ -1554,19 +1577,66 @@ function copyResults(){
   });
 }
 
+function sendResults(){
+  if(!lastResults){toast('No results to send');return;}
+  const{count,totalPot,ctpPot,placePot,ctpPerWinner,ctpWinnerCount,groups,uniqueNets,playerPayout}=lastResults;
+  const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  let body=`KEVGOLF — RESULTS\n${date}\n`+'='.repeat(36)+'\n\n';
+  if(selectedCourse)body+=`COURSE: ${selectedCourse}  |  TEE TIME: ${getTeeTime()}\n`;
+  if(weatherData)body+=`${getWeatherLine()}\n`;
+  body+=`PLAYERS: ${count}  |  TOTAL POT: $${totalPot}\nPlace Pool: $${placePot}  |  CTP Pool: $${ctpPot}\n\n`;
+  body+='── STANDINGS ──\n';
+  let place=1;
+  uniqueNets.forEach(net=>{
+    const tied=groups[net.toFixed(1)].slice().sort();
+    const each=playerPayout[tied[0]];
+    tied.forEach(name=>{
+      const prefix=tied.length>1?`T${place}`:`${place} `;
+      body+=`${prefix.padEnd(3)} ${name.padEnd(22)} Net ${net.toFixed(1).padStart(5)}   $${each}\n`;
+    });place+=tied.length;
+  });
+  body+='\n── CLOSEST TO PIN ──\n';
+  const _ctpHoles=getCtpHoles();
+  if(_ctpHoles.length===0){body+='No CTP holes this round\n';}
+  else{
+    if(ctpWinnerCount>0&&ctpWinnerCount<_ctpHoles.length)body+=`($${ctpPot} pot ÷ ${ctpWinnerCount} winner${ctpWinnerCount>1?'s':''} = $${ctpPerWinner} each)\n`;
+    _ctpHoles.forEach(h=>{const w=ctpWinners[h]||'';body+=`Hole ${h}: ${(w||'None').padEnd(22)} ${w?'$'+ctpPerWinner:'—'}\n`;});
+  }
+  body+='\n── HANDICAP UPDATES ──\n';
+  activePlayers.slice().sort().forEach(name=>{
+    const oldH=workingHcps[name],newH=proposedHcps[name];
+    const arrow=newH>oldH?'▲':newH<oldH?'▼':'=';
+    body+=`${name.padEnd(24)} ${String(oldH).padStart(2)} → ${String(newH).padStart(2)}  ${arrow}\n`;
+  });
+  body+='\n── TODAY\'S PLAYERS ──\n';
+  activePlayers.slice().sort().forEach((name,i)=>{
+    body+=`${String(i+1).padEnd(3)} ${name.padEnd(24)} HCP ${workingHcps[name]!==undefined?workingHcps[name]:roster[name].hcp}\n`;
+  });
+  body+='\n'+'='.repeat(36)+'\n';
+  const emails=Object.keys(roster).filter(n=>!roster[n].inactive&&roster[n].email).map(n=>roster[n].email);
+  if(!emails.length){toast('No player emails on file');return;}
+  const subject=`KevGolf Results — ${date}`;
+  openYahooCompose(emails,subject,body);
+}
+
 function newRound(){
   requireAdmin(()=>{
     selected=new Set();
     try{localStorage.removeItem('kevgolf_selected');}catch(e){}
-    activePlayers=[];ctpWinners={};grossScores={};ctpCount=selectedCourse==='Gator Trace'?3:4;
+    activePlayers=[];ctpWinners={};grossScores={};ctpCount=4;
     lastResults=null;proposedHcps={};workingHcps={};weatherData=null;
     document.getElementById('weather-widget').classList.remove('visible');
     selectedCourse='';playerGroups={};activeGroup=0;numGroups=0;
+    eventDate=new Date().toISOString().slice(0,10);
     document.querySelectorAll('.course-picker .course-btn,.day-picker .course-btn').forEach(b=>b.classList.remove('selected'));
     document.querySelectorAll('#day-picker .course-btn').forEach((b,i)=>{if(i===1)b.classList.add('selected');});
+    const _nr_dateEl=document.getElementById('event-date-input');
+    if(_nr_dateEl)_nr_dateEl.value=eventDate;
     buildPlayerGrid();initDrums();showScreen(0);
-    sessionDoc.set({course:'',teeHour:8,teeMin:0,teeAMPM:'AM',eventDay:'Tuesday',eventDate:'',
+    fetchWeather(eventDate);
+    sessionDoc.set({course:'',teeHour:8,teeMin:0,teeAMPM:'AM',eventDay:'Tuesday',eventDate,ctpCount:4,
       selected:[],activePlayers:[],playerGroups:{},workingHcps:{},numGroups:0,
+      grossScores:{},ctpWinners:{},
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     }).catch(e=>console.warn('Session clear error:',e));
   });

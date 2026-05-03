@@ -248,7 +248,6 @@
       </div>
       <div class="w-stats">
         <div class="w-stat"><div class="w-val" id="w-temp"></div><div class="w-lbl">High</div></div>
-        <div class="w-stat"><div class="w-val" id="w-wind"></div><div class="w-lbl">Wind</div></div>
         <div class="w-stat"><div class="w-val" id="w-humidity"></div><div class="w-lbl">Humidity</div></div>
         <div class="w-stat"><div class="w-val" id="w-rain"></div><div class="w-lbl">Rain</div></div>
       </div>
@@ -748,7 +747,6 @@ function fetchWeather(date){
     };
     document.getElementById('weather-icon').textContent=weatherEmoji(weatherData.code);
     document.getElementById('w-temp').textContent=`${weatherData.temp}°F`;
-    document.getElementById('w-wind').textContent=`${weatherData.windSpeed} mph ${weatherData.windDir}`;
     document.getElementById('w-humidity').textContent=weatherData.humidity!=null?`${weatherData.humidity}%`:'—';
     document.getElementById('w-rain').textContent=`${weatherData.rain}%`;
     document.getElementById('w-rain-in').textContent=`${weatherData.rainIn}"`;
@@ -789,7 +787,7 @@ function weatherEmoji(code){
 }
 function getWeatherLine(){
   if(!weatherData)return'';
-  let s=`${weatherEmoji(weatherData.code)} ${weatherData.temp}°F High · Wind ${weatherData.windSpeed} mph ${weatherData.windDir}`;
+  let s=`${weatherEmoji(weatherData.code)} ${weatherData.temp}°F High`;
   if(weatherData.humidity!=null)s+=` · Humidity ${weatherData.humidity}%`;
   s+=` · Rain ${weatherData.rain}%`;
   return s;

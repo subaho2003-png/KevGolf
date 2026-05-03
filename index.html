@@ -251,11 +251,6 @@
         <div class="w-stat"><div class="w-val" id="w-humidity"></div><div class="w-lbl">Humidity</div></div>
         <div class="w-stat"><div class="w-val" id="w-rain"></div><div class="w-lbl">Rain</div></div>
       </div>
-      <div class="w-divider"></div>
-      <div class="w-stats">
-        <div class="w-stat"><div class="w-val" id="w-rain-in">—</div><div class="w-src">Open-Meteo Rain</div></div>
-        <div class="w-stat"><div class="w-val" id="w-solunar">—</div><div class="w-src">Solunar</div></div>
-      </div>
     </div>
   </div>
   <div class="field-label" style="margin-top:16px">Players</div>
@@ -749,10 +744,6 @@ function fetchWeather(date){
     document.getElementById('w-temp').textContent=`${weatherData.temp}°F`;
     document.getElementById('w-humidity').textContent=weatherData.humidity!=null?`${weatherData.humidity}%`:'—';
     document.getElementById('w-rain').textContent=`${weatherData.rain}%`;
-    document.getElementById('w-rain-in').textContent=`${weatherData.rainIn}"`;
-    // Solunar rating for event date
-    const sol=calcSolunar(new Date(date+'T12:00:00'));
-    document.getElementById('w-solunar').textContent=sol.stars;
     loading.style.display='none';
     document.getElementById('weather-content').style.display='block';
     // Update round-info on screen 1 if visible
@@ -767,15 +758,6 @@ function windDegToDir(deg){
   return['N','NE','E','SE','S','SW','W','NW'][Math.round(deg/45)%8];
 }
 
-function calcSolunar(date){
-  const y=date.getFullYear(),m=date.getMonth()+1,d=date.getDate();
-  const jd=367*y-Math.floor(7*(y+Math.floor((m+9)/12))/4)+Math.floor(275*m/9)+d+1721013.5;
-  const lunation=(jd-2451549.5)%29.53058868;
-  const phase=(lunation<0?lunation+29.53058868:lunation)/29.53058868;
-  const factor=Math.cos(phase*4*Math.PI);
-  const rating=Math.max(1,Math.min(5,Math.round(3+2*factor)));
-  return{rating,stars:'★'.repeat(rating)+'☆'.repeat(5-rating)};
-}
 function weatherEmoji(code){
   if(code===0)return'☀️';
   if(code<=3)return'⛅';

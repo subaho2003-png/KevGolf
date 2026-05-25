@@ -564,7 +564,7 @@ const GROUP_COLORS=[null,
 ];
 const GROUP_NAMES=[,'1','2','3','4','5','6','7','8','9','10'];
 
-const VERSION = '3.4';
+const VERSION = '3.5';
 const SAVE_LOCKOUT_MS = 12 * 60 * 60 * 1000;
 
 function getSaveLockRemaining(){
@@ -1161,31 +1161,10 @@ function openYahooCompose(emails,subject,body){
     setTimeout(()=>document.body.removeChild(a),500);
   };
   if(isAndroid){
-    // Yahoo Mail on Android doesn't reliably parse mailto: BCC params.
-    // Copy emails to clipboard so user can long-press → paste into BCC field.
-    // Format as RFC 5322 "Name" <email> per line so Yahoo Mail uses the explicit
-    // display name and skips the contact lookup that was invalidating Al Wolden's
-    // chip when BCC lost focus (his Yahoo contact entry likely conflicts).
-    const lines=emails.map(e=>{
-      const name=Object.keys(roster).find(n=>roster[n]&&roster[n].email===e);
-      return name?`"${name}" <${e}>`:e;
-    });
-    const emailStr=lines.join('\n');
-    const fallbackCopy=()=>{
-      const ta=document.createElement('textarea');
-      ta.value=emailStr;ta.style.position='fixed';ta.style.opacity='0';
-      document.body.appendChild(ta);ta.select();document.execCommand('copy');
-      document.body.removeChild(ta);
-    };
-    const afterCopy=()=>{
-      toast('✓ Emails copied — paste into BCC field');
-      launch('ymail://mail/compose');
-    };
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(emailStr).then(afterCopy).catch(()=>{fallbackCopy();afterCopy();});
-    }else{
-      fallbackCopy();afterCopy();
-    }
+    // Yahoo Mail on Android keeps mangling pasted BCC (chips invalidate on focus loss,
+    // multi-line / RFC 5322 paste drops recipients). Show emails in a copyable modal
+    // so the user controls the paste — and add a button to launch Yahoo Mail when ready.
+    showAndroidEmailDialog(emails);
     return;
   }
   // iOS: Yahoo Mail's ymail:// scheme accepts BCC via URL params
@@ -1194,6 +1173,43 @@ function openYahooCompose(emails,subject,body){
   launch(url);
   toast('Opening Yahoo Mail…');
 }
+
+function showAndroidEmailDialog(emails){
+  const existing=document.getElementById('android-email-modal');
+  if(existing)existing.remove();
+  const emailStr=emails.join(', ');
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay open';
+  overlay.id='android-email-modal';
+  overlay.innerHTML=`
+    <div class="modal">
+      <div class="modal-title">Email Players (${emails.length})</div>
+      <div style="font-size:0.9rem;opacity:0.85;margin-bottom:10px;line-height:1.4">
+        Tap <b>Copy Emails</b>, then open Yahoo Mail, paste into the <b>BCC</b> field, and send.
+      </div>
+      <textarea id="android-email-list" readonly style="width:100%;min-height:140px;padding:10px;border-radius:10px;background:#0e1a13;color:#e8f5ec;border:1px solid rgba(255,255,255,0.15);font-size:0.85rem;font-family:monospace;resize:vertical">${emailStr}</textarea>
+      <button class="btn btn-primary" id="android-copy-btn" style="margin-top:12px">Copy Emails</button>
+      <button class="btn btn-secondary" id="android-open-btn" style="margin-top:8px">Open Yahoo Mail</button>
+      <button class="btn btn-secondary" id="android-close-btn" style="margin-top:8px">Close</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  const ta=overlay.querySelector('#android-email-list');
+  const close=()=>overlay.remove();
+  overlay.querySelector('#android-copy-btn').onclick=()=>{
+    const doCopy=()=>{ta.focus();ta.select();try{document.execCommand('copy');}catch(e){}};
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(emailStr).then(()=>toast('✓ Emails copied')).catch(()=>{doCopy();toast('✓ Emails copied');});
+    }else{doCopy();toast('✓ Emails copied');}
+  };
+  overlay.querySelector('#android-open-btn').onclick=()=>{
+    const a=document.createElement('a');a.href='ymail://mail/compose';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>document.body.removeChild(a),500);
+  };
+  overlay.querySelector('#android-close-btn').onclick=close;
+  overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
+}
+
 function copyEmailList(){
   const players=getPlayerListForCopy();
   const emails=players.filter(n=>roster[n]&&roster[n].email).map(n=>roster[n].email);

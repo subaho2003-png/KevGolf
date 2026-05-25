@@ -564,7 +564,7 @@ const GROUP_COLORS=[null,
 ];
 const GROUP_NAMES=[,'1','2','3','4','5','6','7','8','9','10'];
 
-const VERSION = '3.6';
+const VERSION = '4.0';
 const SAVE_LOCKOUT_MS = 12 * 60 * 60 * 1000;
 
 function getSaveLockRemaining(){
@@ -1161,10 +1161,17 @@ function openYahooCompose(emails,subject,body){
     setTimeout(()=>document.body.removeChild(a),500);
   };
   if(isAndroid){
-    // Yahoo Mail on Android keeps mangling pasted BCC (chips invalidate on focus loss,
-    // multi-line / RFC 5322 paste drops recipients). Show emails in a copyable modal
-    // so the user controls the paste — and add a button to launch Yahoo Mail when ready.
-    showAndroidEmailDialog(emails);
+    // Yahoo Mail Android invalidates the first BCC chip on focus loss and blocks delivery.
+    // Route through Gmail's web compose URL instead — handles BCC reliably via Gmail app
+    // or browser. User must be signed in to a Google account on the device.
+    // Gmail's Android URL handler doesn't split a comma-separated bcc value into chips —
+    // it treats the whole string as one recipient. Use a repeated bcc= parameter
+    // instead (one per email), which Gmail reliably splits into individual chips.
+    const params=['view=cm','fs=1',...emails.map(e=>'bcc='+encodeURIComponent(e))];
+    if(subject)params.push('su='+encodeURIComponent(subject));
+    if(body)params.push('body='+encodeURIComponent(body));
+    launch('https://mail.google.com/mail/?'+params.join('&'));
+    toast('Opening Gmail…');
     return;
   }
   // iOS: Yahoo Mail's ymail:// scheme accepts BCC via URL params

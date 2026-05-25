@@ -564,7 +564,7 @@ const GROUP_COLORS=[null,
 ];
 const GROUP_NAMES=[,'1','2','3','4','5','6','7','8','9','10'];
 
-const VERSION = '4.0';
+const VERSION = '4.1';
 const SAVE_LOCKOUT_MS = 12 * 60 * 60 * 1000;
 
 function getSaveLockRemaining(){
@@ -1161,17 +1161,11 @@ function openYahooCompose(emails,subject,body){
     setTimeout(()=>document.body.removeChild(a),500);
   };
   if(isAndroid){
-    // Yahoo Mail Android invalidates the first BCC chip on focus loss and blocks delivery.
-    // Route through Gmail's web compose URL instead — handles BCC reliably via Gmail app
-    // or browser. User must be signed in to a Google account on the device.
-    // Gmail's Android URL handler doesn't split a comma-separated bcc value into chips —
-    // it treats the whole string as one recipient. Use a repeated bcc= parameter
-    // instead (one per email), which Gmail reliably splits into individual chips.
-    const params=['view=cm','fs=1',...emails.map(e=>'bcc='+encodeURIComponent(e))];
-    if(subject)params.push('su='+encodeURIComponent(subject));
-    if(body)params.push('body='+encodeURIComponent(body));
-    launch('https://mail.google.com/mail/?'+params.join('&'));
-    toast('Opening Gmail…');
+    // Android: just hand the user the email list. No auto-launching any mail app —
+    // both Yahoo Mail's BCC paste (chip invalidation) and Gmail's URL handler (single-
+    // string BCC) were unreliable. User copies the list and pastes into whichever app
+    // they prefer.
+    showAndroidEmailDialog(emails);
     return;
   }
   // iOS: Yahoo Mail's ymail:// scheme accepts BCC via URL params
@@ -1184,21 +1178,18 @@ function openYahooCompose(emails,subject,body){
 function showAndroidEmailDialog(emails){
   const existing=document.getElementById('android-email-modal');
   if(existing)existing.remove();
-  // Newline-separated paste created chips correctly on Yahoo Mail Android in earlier
-  // testing (v3.3). Comma+space made chips fail to create.
-  const emailStr=emails.join('\n');
+  const emailStr=emails.join(', ');
   const overlay=document.createElement('div');
   overlay.className='modal-overlay open';
   overlay.id='android-email-modal';
   overlay.innerHTML=`
     <div class="modal">
-      <div class="modal-title">Email Players (${emails.length})</div>
+      <div class="modal-title">Player Emails (${emails.length})</div>
       <div style="font-size:0.9rem;opacity:0.85;margin-bottom:10px;line-height:1.4">
-        Tap <b>Copy Emails</b>, then open Yahoo Mail, paste into the <b>BCC</b> field, and send. If a recipient turns red, check Yahoo Mail Contacts for a conflicting entry with the same email.
+        Tap <b>Copy Emails</b>, then open your email app and paste into the BCC field.
       </div>
-      <textarea id="android-email-list" readonly style="width:100%;min-height:140px;padding:10px;border-radius:10px;background:#0e1a13;color:#e8f5ec;border:1px solid rgba(255,255,255,0.15);font-size:0.85rem;font-family:monospace;resize:vertical">${emailStr}</textarea>
+      <textarea id="android-email-list" readonly style="width:100%;min-height:160px;padding:10px;border-radius:10px;background:#0e1a13;color:#e8f5ec;border:1px solid rgba(255,255,255,0.15);font-size:0.85rem;font-family:monospace;resize:vertical">${emailStr}</textarea>
       <button class="btn btn-primary" id="android-copy-btn" style="margin-top:12px">Copy Emails</button>
-      <button class="btn btn-secondary" id="android-open-btn" style="margin-top:8px">Open Yahoo Mail</button>
       <button class="btn btn-secondary" id="android-close-btn" style="margin-top:8px">Close</button>
     </div>`;
   document.body.appendChild(overlay);
@@ -1209,11 +1200,6 @@ function showAndroidEmailDialog(emails){
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(emailStr).then(()=>toast('✓ Emails copied')).catch(()=>{doCopy();toast('✓ Emails copied');});
     }else{doCopy();toast('✓ Emails copied');}
-  };
-  overlay.querySelector('#android-open-btn').onclick=()=>{
-    const a=document.createElement('a');a.href='ymail://mail/compose';
-    document.body.appendChild(a);a.click();
-    setTimeout(()=>document.body.removeChild(a),500);
   };
   overlay.querySelector('#android-close-btn').onclick=close;
   overlay.addEventListener('click',e=>{if(e.target===overlay)close();});

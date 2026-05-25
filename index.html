@@ -564,7 +564,7 @@ const GROUP_COLORS=[null,
 ];
 const GROUP_NAMES=[,'1','2','3','4','5','6','7','8','9','10'];
 
-const VERSION = '3.1';
+const VERSION = '3.4';
 const SAVE_LOCKOUT_MS = 12 * 60 * 60 * 1000;
 
 function getSaveLockRemaining(){
@@ -1112,10 +1112,17 @@ function getPlayerListForCopy(){
 }
 function copyLineup(){
   const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  let txt=`KEVGOLF — PLAYER LIST\n${date}\n`+'='.repeat(36)+'\n\n';
+  // Body text is ASCII-only: non-ASCII chars (em dash, middle dot, box-drawing) and
+  // long runs of '=' force quoted-printable encoding, which broke BCC chips on Yahoo Mail Android.
+  let txt=`KEVGOLF - PLAYER LIST\n${date}\n`+'-'.repeat(36)+'\n\n';
   if(selectedCourse||eventDate){
-    txt+=`Course: ${selectedCourse||'TBD'}\n${eventDay}, ${getEventDateLabel()}  ·  Tee Time: ${getTeeTime()}\n`;
-    if(weatherData)txt+=`${getWeatherLine()}\n`;
+    txt+=`Course: ${selectedCourse||'TBD'}\n${eventDay}, ${getEventDateLabel()}  |  Tee Time: ${getTeeTime()}\n`;
+    if(weatherData){
+      let w=`${weatherData.temp}F High`;
+      if(weatherData.humidity!=null)w+=` | Humidity ${weatherData.humidity}%`;
+      w+=` | Rain ${weatherData.rain}%`;
+      txt+=`${w}\n`;
+    }
     txt+='\n';
   }
   const players=getPlayerListForCopy();
@@ -1125,18 +1132,18 @@ function copyLineup(){
       const grpPlayers=players.filter(n=>playerGroups[n]===g);
       if(!grpPlayers.length)continue;
       const avgHcp=(grpPlayers.reduce((s,n)=>s+workingHcps[n],0)/grpPlayers.length).toFixed(1);
-      txt+=`── Group ${g} (Avg HCP: ${avgHcp}) ──\n`;
+      txt+=`-- Group ${g} (Avg HCP: ${avgHcp}) --\n`;
       grpPlayers.forEach(n=>{txt+=`   ${n.padEnd(24)} HCP ${workingHcps[n]}\n`;});
       txt+='\n';
     }
     const unassigned=players.filter(n=>!playerGroups[n]);
-    if(unassigned.length){txt+=`── Unassigned ──\n`;unassigned.forEach(n=>{txt+=`   ${n.padEnd(24)} HCP ${workingHcps[n]||roster[n].hcp}\n`;});txt+='\n';}
+    if(unassigned.length){txt+=`-- Unassigned --\n`;unassigned.forEach(n=>{txt+=`   ${n.padEnd(24)} HCP ${workingHcps[n]||roster[n].hcp}\n`;});txt+='\n';}
   }else{
     txt+=`${players.length} Players:\n\n`;
     players.forEach((n,i)=>{txt+=`${String(i+1).padEnd(3)} ${n.padEnd(24)} HCP ${roster[n].hcp}\n`;});
     txt+='\n';
   }
-  txt+='='.repeat(36)+'\n';
+  txt+='-'.repeat(36)+'\n';
   navigator.clipboard.writeText(txt).then(()=>toast('✓ Player list copied!')).catch(()=>{
     const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
     document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Player list copied!');
@@ -1156,7 +1163,14 @@ function openYahooCompose(emails,subject,body){
   if(isAndroid){
     // Yahoo Mail on Android doesn't reliably parse mailto: BCC params.
     // Copy emails to clipboard so user can long-press → paste into BCC field.
-    const emailStr=emails.join(', ');
+    // Format as RFC 5322 "Name" <email> per line so Yahoo Mail uses the explicit
+    // display name and skips the contact lookup that was invalidating Al Wolden's
+    // chip when BCC lost focus (his Yahoo contact entry likely conflicts).
+    const lines=emails.map(e=>{
+      const name=Object.keys(roster).find(n=>roster[n]&&roster[n].email===e);
+      return name?`"${name}" <${e}>`:e;
+    });
+    const emailStr=lines.join('\n');
     const fallbackCopy=()=>{
       const ta=document.createElement('textarea');
       ta.value=emailStr;ta.style.position='fixed';ta.style.opacity='0';

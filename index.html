@@ -564,7 +564,7 @@ const GROUP_COLORS=[null,
 ];
 const GROUP_NAMES=[,'1','2','3','4','5','6','7','8','9','10'];
 
-const VERSION = '3.5';
+const VERSION = '3.6';
 const SAVE_LOCKOUT_MS = 12 * 60 * 60 * 1000;
 
 function getSaveLockRemaining(){
@@ -1177,7 +1177,9 @@ function openYahooCompose(emails,subject,body){
 function showAndroidEmailDialog(emails){
   const existing=document.getElementById('android-email-modal');
   if(existing)existing.remove();
-  const emailStr=emails.join(', ');
+  // Newline-separated paste created chips correctly on Yahoo Mail Android in earlier
+  // testing (v3.3). Comma+space made chips fail to create.
+  const emailStr=emails.join('\n');
   const overlay=document.createElement('div');
   overlay.className='modal-overlay open';
   overlay.id='android-email-modal';
@@ -1185,7 +1187,7 @@ function showAndroidEmailDialog(emails){
     <div class="modal">
       <div class="modal-title">Email Players (${emails.length})</div>
       <div style="font-size:0.9rem;opacity:0.85;margin-bottom:10px;line-height:1.4">
-        Tap <b>Copy Emails</b>, then open Yahoo Mail, paste into the <b>BCC</b> field, and send.
+        Tap <b>Copy Emails</b>, then open Yahoo Mail, paste into the <b>BCC</b> field, and send. If a recipient turns red, check Yahoo Mail Contacts for a conflicting entry with the same email.
       </div>
       <textarea id="android-email-list" readonly style="width:100%;min-height:140px;padding:10px;border-radius:10px;background:#0e1a13;color:#e8f5ec;border:1px solid rgba(255,255,255,0.15);font-size:0.85rem;font-family:monospace;resize:vertical">${emailStr}</textarea>
       <button class="btn btn-primary" id="android-copy-btn" style="margin-top:12px">Copy Emails</button>

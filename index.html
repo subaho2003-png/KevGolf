@@ -334,8 +334,8 @@
     <div class="results-card-header">📋 Handicap Updates</div>
     <div id="hcp-results"></div>
     <div style="padding:12px 16px;display:flex;gap:10px;">
-      <button class="btn btn-success" onclick="applyHandicaps(true)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">Save Handicap and Round Results?</button>
-      <button class="btn btn-secondary" onclick="applyHandicaps(false)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">Save Round Only</button>
+      <button id="btn-save-hcp" class="btn btn-success" onclick="applyHandicaps(true)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">Save Handicap and Round Results?</button>
+      <button id="btn-save-round" class="btn btn-secondary" onclick="applyHandicaps(false)" style="margin:0;flex:1;font-size:0.9rem;padding:12px">Save Round Only</button>
     </div>
   </div>
   <button class="btn btn-secondary" onclick="copyResults()" style="margin-top:4px">📋 Copy Results as Text</button>
@@ -440,7 +440,7 @@
   let _lastTap=0;
   document.addEventListener('touchend',function(e){
     const now=Date.now();
-    if(now-_lastTap<300){e.preventDefault();}
+    if(now-_lastTap<300 && !e.target.closest('button')){e.preventDefault();}
     _lastTap=now;
   },{passive:false,capture:true});
   document.addEventListener('touchstart',function(e){
@@ -548,8 +548,8 @@ const DRUM_H=44;
 const PAR3_HOLES={'Indian Hills':[4,8,11,17],'Gator Trace':[9,13,17],'Fairwinds':[5,8,11,14],'Meadowwood':[4,7,11,15]};
 function getCtpHoles(){const known=PAR3_HOLES[selectedCourse];if(known)return known;return Array.from({length:ctpCount},(_,i)=>i+1);}
 let playerGroups={},activeGroup=0,numGroups=0;
-let secretSeq=[],secretTimer=null;
-const SECRET_CODE=[4,3,2,1];
+let secretSeq=[],secretTimer=null,_skipNextCourse=false;
+const SECRET_CODE=['Fairwinds','Gator Trace','Indian Hills'];
 const GROUP_COLORS=[null,
   {bg:'rgba(255,110,110,0.3)',border:'rgba(255,110,110,0.75)',btn:'rgba(200,70,70,0.75)'},
   {bg:'rgba(255,170,60,0.3)',border:'rgba(255,170,60,0.75)',btn:'rgba(200,130,30,0.75)'},
@@ -564,7 +564,25 @@ const GROUP_COLORS=[null,
 ];
 const GROUP_NAMES=[,'1','2','3','4','5','6','7','8','9','10'];
 
-const VERSION = '2.2';
+const VERSION = '3.1';
+const SAVE_LOCKOUT_MS = 12 * 60 * 60 * 1000;
+
+function getSaveLockRemaining(){
+  try{const t=parseInt(localStorage.getItem('kevgolf_last_save')||'0');if(!t)return 0;return Math.max(0,SAVE_LOCKOUT_MS-(Date.now()-t));}catch(e){return 0;}
+}
+function updateSaveButtons(){
+  const b1=document.getElementById('btn-save-hcp'),b2=document.getElementById('btn-save-round');
+  if(!b1||!b2)return;
+  const rem=getSaveLockRemaining();
+  if(rem>0){
+    const hrs=(rem/3600000).toFixed(1);
+    b1.disabled=true;b1.style.opacity='0.35';b1.textContent=`✓ Saved · Locked (${hrs}h remaining)`;
+    b2.disabled=true;b2.style.opacity='0.35';b2.textContent='Save locked';
+  }else{
+    b1.disabled=false;b1.style.opacity='';b1.textContent='Save Handicap and Round Results?';
+    b2.disabled=false;b2.style.opacity='';b2.textContent='Save Round Only';
+  }
+}
 
 // ── Admin PIN ──────────────────────────────────────────────────
 function requireAdmin(cb){
@@ -808,15 +826,38 @@ function init(){
     if(isAdmin)return; // admin is source of truth; don't overwrite local changes
     applySessionToUI(doc.data());
   },err=>console.warn('Session sync error:',err));
+  // Secret unlock — track on both touchstart and click; dedup so one tap counts once
+  const _seqTimes=new WeakMap();
+  function _advanceSecretSeq(btn){
+    const now=Date.now();
+    if(now-(_seqTimes.get(btn)||0)<600)return; // same tap fired both touchstart+click
+    _seqTimes.set(btn,now);
+    const name=btn.textContent.trim();
+    secretSeq.push(name);
+    if(secretSeq.length>SECRET_CODE.length)secretSeq.shift();
+    clearTimeout(secretTimer);
+    secretTimer=setTimeout(()=>{secretSeq=[];},5000);
+    if(secretSeq.join(',')===SECRET_CODE.join(',')){
+      secretSeq=[];_skipNextCourse=true;showAdminWindow();
+    }
+  }
+  document.addEventListener('touchstart',function(e){
+    const btn=e.target.closest('.course-picker .course-btn');
+    if(btn)_advanceSecretSeq(btn);
+  },{passive:true});
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest('.course-picker .course-btn');
+    if(btn)_advanceSecretSeq(btn);
+  });
 }
 
 function selectCourse(btn,name,ctp){
-  requireAdmin(()=>{
-    selectedCourse=name;ctpCount=ctp;
-    document.querySelectorAll('.course-picker .course-btn').forEach(b=>b.classList.remove('selected'));
-    btn.classList.add('selected');
-    saveSessionState();
-  });
+  if(_skipNextCourse){_skipNextCourse=false;return;}
+  if(!isAdmin)return;
+  selectedCourse=name;ctpCount=ctp;
+  document.querySelectorAll('.course-picker .course-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  saveSessionState();
 }
 
 function initDrums(){
@@ -1104,13 +1145,39 @@ function copyLineup(){
 
 function openYahooCompose(emails,subject,body){
   if(!emails.length){toast('No emails to send');return;}
+  const isAndroid=/Android/i.test(navigator.userAgent);
+  const launch=(href)=>{
+    const a=document.createElement('a');
+    a.href=href;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>document.body.removeChild(a),500);
+  };
+  if(isAndroid){
+    // Yahoo Mail on Android doesn't reliably parse mailto: BCC params.
+    // Copy emails to clipboard so user can long-press → paste into BCC field.
+    const emailStr=emails.join(', ');
+    const fallbackCopy=()=>{
+      const ta=document.createElement('textarea');
+      ta.value=emailStr;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();document.execCommand('copy');
+      document.body.removeChild(ta);
+    };
+    const afterCopy=()=>{
+      toast('✓ Emails copied — paste into BCC field');
+      launch('ymail://mail/compose');
+    };
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(emailStr).then(afterCopy).catch(()=>{fallbackCopy();afterCopy();});
+    }else{
+      fallbackCopy();afterCopy();
+    }
+    return;
+  }
+  // iOS: Yahoo Mail's ymail:// scheme accepts BCC via URL params
   const bcc=encodeURIComponent(emails.join(','));
   const url='ymail://mail/compose?bcc='+bcc+(subject?'&subject='+encodeURIComponent(subject):'')+(body?'&body='+encodeURIComponent(body):'')+'&_='+Date.now();
-  const a=document.createElement('a');
-  a.href=url;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(()=>document.body.removeChild(a),500);
+  launch(url);
   toast('Opening Yahoo Mail…');
 }
 function copyEmailList(){
@@ -1284,11 +1351,6 @@ function buildGroupSelector(){
 function selectGroup(g){
   activeGroup=(activeGroup===g)?0:g;
   buildGroupSelector();
-  secretSeq.push(g);
-  if(secretSeq.length>SECRET_CODE.length)secretSeq.shift();
-  clearTimeout(secretTimer);
-  secretTimer=setTimeout(()=>{secretSeq=[];},5000);
-  if(secretSeq.join(',')===SECRET_CODE.join(',')){secretSeq=[];showAdminWindow();}
 }
 
 function assignGroup(name){
@@ -1443,7 +1505,7 @@ function _calcResults(){
     proposedHcps[name]=Math.max(0,old+adj);
   });
   lastResults={count,totalPot,ctpPot,placePot,perHoleCTP,ctpPerWinner,ctpWinnerCount,nets,groups,uniqueNets,playerPayout};
-  renderResults(lastResults);showScreen(4);
+  renderResults(lastResults);showScreen(4);updateSaveButtons();
 }
 
 
@@ -1504,7 +1566,10 @@ function renderResults(r){
 
 function applyHandicaps(apply){
   requireAdmin(()=>{
+    const rem=getSaveLockRemaining();
+    if(rem>0){toast(`Save locked · ${(rem/3600000).toFixed(1)}h remaining`);return;}
     saveRoundWinnings();
+    try{localStorage.setItem('kevgolf_last_save',Date.now().toString());}catch(e){}
     if(apply){
       activePlayers.forEach(n=>{
         const oldH=workingHcps[n],newH=proposedHcps[n];
@@ -1516,6 +1581,7 @@ function applyHandicaps(apply){
     }else{
       toast('✓ Round saved · Handicaps unchanged');
     }
+    updateSaveButtons();
   });
 }
 

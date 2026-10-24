@@ -541,6 +541,7 @@ const payouts={
 };
 
 let selected=new Set(),activePlayers=[],ctpCount=4,ctpWinners={};
+let lastSavedDate='';
 let grossScores={},lastResults=null,proposedHcps={},workingHcps={};
 let selectedCourse='',teeHour=8,teeMin=0,teeAMPM='AM';
 let eventDay='Tuesday',eventDate=new Date().toISOString().slice(0,10);
@@ -637,7 +638,7 @@ function saveSessionState(){
     eventDay,eventDate,
     selected:Array.from(selected),
     activePlayers,playerGroups,workingHcps,numGroups,
-    grossScores,ctpWinners,
+    grossScores,ctpWinners,lastSavedDate,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   }).catch(e=>console.warn('Session save error:',e));
 }
@@ -649,7 +650,7 @@ function applySessionToUI(d){
   selected=new Set(d.selected||[]);
   activePlayers=d.activePlayers||[];
   playerGroups=d.playerGroups||{};workingHcps=d.workingHcps||{};numGroups=d.numGroups||0;
-  grossScores=d.grossScores||{};ctpWinners=d.ctpWinners||{};
+  grossScores=d.grossScores||{};ctpWinners=d.ctpWinners||{};lastSavedDate=d.lastSavedDate||'';
   // Course buttons
   document.querySelectorAll('.course-picker .course-btn').forEach(b=>{
     b.classList.toggle('selected',b.textContent.trim()===selectedCourse);
@@ -1444,7 +1445,33 @@ function renderCTPHoles(){
 
 function changeCTP(delta){requireAdmin(()=>{ctpCount=Math.max(0,ctpCount+delta);renderCTPHoles();saveSessionState();});}
 
+function resetScoresIfNewDate(){
+  if(!lastSavedDate||lastSavedDate===eventDate)return false;
+  grossScores={};
+  activePlayers.forEach(n=>{if(roster[n])workingHcps[n]=roster[n].hcp;});
+  lastSavedDate=eventDate; // mark this date handled so in-progress scores aren't wiped again
+  if(isAdmin)saveSessionState();
+  return true;
+}
+
+// Rounds saved before lastSavedDate existed: fall back to the newest saved round's date
+let _lsdChecked=false;
+function checkLegacySavedDate(){
+  if(_lsdChecked||lastSavedDate||!eventDate)return;
+  _lsdChecked=true;
+  winningsDoc.get().then(doc=>{
+    const rounds=(doc.exists&&doc.data().rounds)||[];
+    const last=rounds.map(r=>r.date).filter(Boolean).sort().pop();
+    if(last&&last!==eventDate&&!lastSavedDate){
+      lastSavedDate=last;
+      if(resetScoresIfNewDate())buildScoreList();
+    }
+  }).catch(e=>console.warn('Saved-date check error:',e));
+}
+
 function buildScoreList(){
+  resetScoresIfNewDate();
+  checkLegacySavedDate();
   const list=document.getElementById('score-list');
   list.innerHTML='';
   activePlayers.forEach(name=>{
@@ -1460,7 +1487,7 @@ function buildScoreList(){
           placeholder="Gross" value="${prev||hcp}" oninput="updateNet('${name}',this.value)">
         <button style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:36px;height:22px;border-radius:0 0 5px 5px;font-size:0.75rem;cursor:pointer;line-height:1" onclick="adjustScore('${name}',-1)">▼</button>
       </div>
-      <div class="net-display" id="net-${sid}">${prev?'Net '+(prev-hcp).toFixed(1):'—'}</div>`;
+      <div class="net-display" id="net-${sid}">${prev?'Net '+(prev-hcp).toFixed(1):'Net 0.0'}</div>`;
     // Long-press player name → set Net Score to 0 (gross = hcp)
     const snameEl=row.querySelector(`#sname-${sid}`);
     let _lpt=null;
@@ -1482,7 +1509,7 @@ function updateNet(name,val){
   const hcp=workingHcps[name];
   const el=document.getElementById(`net-${safeid(name)}`);
   if(val&&!isNaN(val)){grossScores[name]=parseFloat(val);el.textContent='Net '+(parseFloat(val)-hcp).toFixed(1);}
-  else{delete grossScores[name];el.textContent='—';}
+  else{delete grossScores[name];el.textContent='Net 0.0';}
   if(isAdmin)debounceSave();
 }
 
@@ -1606,6 +1633,9 @@ function applyHandicaps(apply){
     }else{
       toast('✓ Round saved · Handicaps unchanged');
     }
+    // Remember which outing was saved; score entry resets once a new date is chosen
+    lastSavedDate=eventDate;
+    saveSessionState();
     updateSaveButtons();
   });
 }
@@ -1695,7 +1725,7 @@ function newRound(){
   requireAdmin(()=>{
     selected=new Set();
     try{localStorage.removeItem('kevgolf_selected');}catch(e){}
-    activePlayers=[];ctpWinners={};grossScores={};ctpCount=4;
+    activePlayers=[];ctpWinners={};grossScores={};ctpCount=4;lastSavedDate='';
     lastResults=null;proposedHcps={};workingHcps={};weatherData=null;
     document.getElementById('weather-widget').classList.remove('visible');
     selectedCourse='';playerGroups={};activeGroup=0;numGroups=0;
@@ -1708,7 +1738,7 @@ function newRound(){
     fetchWeather(eventDate);
     sessionDoc.set({course:'',teeHour:8,teeMin:0,teeAMPM:'AM',eventDay:'Tuesday',eventDate,ctpCount:4,
       selected:[],activePlayers:[],playerGroups:{},workingHcps:{},numGroups:0,
-      grossScores:{},ctpWinners:{},
+      grossScores:{},ctpWinners:{},lastSavedDate:'',
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     }).catch(e=>console.warn('Session clear error:',e));
   });

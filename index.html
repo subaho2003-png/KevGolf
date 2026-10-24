@@ -1112,43 +1112,42 @@ function getPlayerListForCopy(){
   return activePlayers.length?activePlayers:Array.from(selected).sort();
 }
 function copyLineup(){
-  const date=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  // Body text is ASCII-only: non-ASCII chars (em dash, middle dot, box-drawing) and
-  // long runs of '=' force quoted-printable encoding, which broke BCC chips on Yahoo Mail Android.
-  let txt=`KEVGOLF - PLAYER LIST\n${date}\n`+'-'.repeat(36)+'\n\n';
-  if(selectedCourse||eventDate){
-    txt+=`Course: ${selectedCourse||'TBD'}\n${eventDay}, ${getEventDateLabel()}  |  Tee Time: ${getTeeTime()}\n`;
-    if(weatherData){
-      let w=`${weatherData.temp}F High`;
-      if(weatherData.humidity!=null)w+=` | Humidity ${weatherData.humidity}%`;
-      w+=` | Rain ${weatherData.rain}%`;
-      txt+=`${w}\n`;
-    }
-    txt+='\n';
-  }
-  const players=getPlayerListForCopy();
-  const grouped=players.length&&players.some(n=>playerGroups[n]);
-  if(grouped){
-    for(let g=1;g<=numGroups;g++){
-      const grpPlayers=players.filter(n=>playerGroups[n]===g);
-      if(!grpPlayers.length)continue;
-      const avgHcp=(grpPlayers.reduce((s,n)=>s+workingHcps[n],0)/grpPlayers.length).toFixed(1);
-      txt+=`-- Group ${g} (Avg HCP: ${avgHcp}) --\n`;
-      grpPlayers.forEach(n=>{txt+=`   ${n.padEnd(24)} HCP ${workingHcps[n]}\n`;});
-      txt+='\n';
-    }
-    const unassigned=players.filter(n=>!playerGroups[n]);
-    if(unassigned.length){txt+=`-- Unassigned --\n`;unassigned.forEach(n=>{txt+=`   ${n.padEnd(24)} HCP ${workingHcps[n]||roster[n].hcp}\n`;});txt+='\n';}
-  }else{
-    txt+=`${players.length} Players:\n\n`;
-    players.forEach((n,i)=>{txt+=`${String(i+1).padEnd(3)} ${n.padEnd(24)} HCP ${roster[n].hcp}\n`;});
-    txt+='\n';
-  }
-  txt+='-'.repeat(36)+'\n';
-  navigator.clipboard.writeText(txt).then(()=>toast('✓ Player list copied!')).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
-    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Player list copied!');
-  });
+  // Plain list only: current players and their handicaps, no groupings or other details.
+  const players=getPlayerListForCopy().slice().sort();
+  const hcpOf=n=>workingHcps[n]!==undefined?workingHcps[n]:roster[n].hcp;
+  const txt=players.map(n=>`${n.padEnd(24)} HCP ${hcpOf(n)}`).join('\n')+'\n';
+  showCopyDialog(`Current Players (${players.length})`,txt,'Copy Player List');
+}
+
+// Copy-able text dialog: tries an automatic copy, but always shows the text so it can be copied manually
+function showCopyDialog(title,text,btnLabel){
+  const existing=document.getElementById('copy-text-modal');
+  if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay open';
+  overlay.id='copy-text-modal';
+  overlay.innerHTML=`
+    <div class="modal">
+      <div class="modal-title"></div>
+      <textarea id="copy-text-area" readonly style="width:100%;min-height:260px;padding:10px;border-radius:10px;background:#0e1a13;color:#e8f5ec;border:1px solid rgba(255,255,255,0.15);font-size:0.8rem;font-family:monospace;resize:vertical;white-space:pre"></textarea>
+      <button class="btn btn-primary" id="copy-text-btn" style="margin-top:12px"></button>
+      <button class="btn btn-secondary" id="copy-text-close" style="margin-top:8px">Close</button>
+    </div>`;
+  overlay.querySelector('.modal-title').textContent=title;
+  const ta=overlay.querySelector('#copy-text-area');
+  ta.value=text;
+  overlay.querySelector('#copy-text-btn').textContent=btnLabel;
+  document.body.appendChild(overlay);
+  const doCopy=()=>{
+    const legacy=()=>{ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}toast(ok?'✓ Copied!':'Select the text and copy it manually');};
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=>toast('✓ Copied!')).catch(legacy);
+    }else legacy();
+  };
+  overlay.querySelector('#copy-text-btn').onclick=doCopy;
+  overlay.querySelector('#copy-text-close').onclick=()=>overlay.remove();
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  doCopy();
 }
 
 function openYahooCompose(emails,subject,body){

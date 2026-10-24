@@ -189,6 +189,7 @@
 </head>
 <body>
 <header>
+  <div id="admin-editing-banner" style="display:none;background:#cc0000;color:#fff;font-weight:800;letter-spacing:2px;font-size:0.8rem;text-align:center;padding:6px 10px;margin:-20px -20px 12px">ADMIN EDITING</div>
   <h1>⛳ KevGolf</h1>
   <p>Highest Net Score Wins</p>
   <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px">
@@ -624,7 +625,34 @@ function setAdminMode(on){
   document.body.classList.toggle('is-admin',on);
   document.getElementById('bar-view').style.display=on?'none':'inline-flex';
   document.getElementById('bar-active').style.display=on?'inline-flex':'none';
+  updateAdminPresence();
 }
+
+// ── Admin presence: show "ADMIN EDITING" when another device is in admin mode ──
+const PRESENCE_TTL_MS=30000,PRESENCE_BEAT_MS=10000;
+const DEVICE_ID=Math.random().toString(36).slice(2)+Date.now().toString(36);
+const presenceDoc=db.collection('kevgolf').doc('adminPresence');
+let _presenceTimer=null,_presenceData={};
+function updateAdminPresence(){
+  clearInterval(_presenceTimer);_presenceTimer=null;
+  if(isAdmin){
+    const beat=()=>presenceDoc.set({[DEVICE_ID]:Date.now()},{merge:true}).catch(()=>{});
+    beat();_presenceTimer=setInterval(beat,PRESENCE_BEAT_MS);
+  }else{
+    presenceDoc.update({[DEVICE_ID]:firebase.firestore.FieldValue.delete()}).catch(()=>{});
+  }
+}
+function renderAdminBanner(){
+  const now=Date.now();
+  const other=Object.keys(_presenceData).some(k=>k!==DEVICE_ID&&now-_presenceData[k]<PRESENCE_TTL_MS);
+  const el=document.getElementById('admin-editing-banner');
+  if(el)el.style.display=other?'block':'none';
+}
+presenceDoc.onSnapshot(doc=>{_presenceData=doc.exists?doc.data():{};renderAdminBanner();},()=>{});
+setInterval(renderAdminBanner,5000);
+window.addEventListener('pagehide',()=>{
+  if(isAdmin)presenceDoc.update({[DEVICE_ID]:firebase.firestore.FieldValue.delete()}).catch(()=>{});
+});
 function lockAdmin(){
   setAdminMode(false);
   toast('Admin mode locked');
@@ -638,7 +666,7 @@ function saveSessionState(){
     eventDay,eventDate,
     selected:Array.from(selected),
     activePlayers,playerGroups,workingHcps,numGroups,
-    grossScores,ctpWinners,lastSavedDate,
+    grossScores,ctpWinners,lastSavedDate,updatedBy:DEVICE_ID,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   }).catch(e=>console.warn('Session save error:',e));
 }
@@ -685,6 +713,7 @@ function applySessionToUI(d){
   const _show=selected.size>=1?'block':'none';
   document.getElementById('copy-lineup-btn').style.display=_show;
   const _eb=document.getElementById('copy-email-btn-1');if(_eb)_eb.style.display=_show;
+  document.getElementById('copy-email-btn').style.display=_show;
   // Update score screen if visible
   const s2=document.getElementById('screen-2');
   if(s2&&s2.classList.contains('active')&&activePlayers.length>0)buildScoreList();
@@ -824,8 +853,12 @@ function init(){
   // Live sync – session (course, players, groupings, tee time)
   sessionDoc.onSnapshot(doc=>{
     if(!doc.exists)return;
-    if(isAdmin)return; // admin is source of truth; don't overwrite local changes
-    applySessionToUI(doc.data());
+    // Skip our own writes (local echo or server copy); apply changes made on any other device,
+    // including another admin's, so every device shows the same player list.
+    if(doc.metadata.hasPendingWrites)return;
+    const d=doc.data();
+    if(d.updatedBy===DEVICE_ID)return;
+    applySessionToUI(d);
   },err=>console.warn('Session sync error:',err));
   // Secret unlock — track on both touchstart and click; dedup so one tap counts once
   const _seqTimes=new WeakMap();

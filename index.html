@@ -192,6 +192,7 @@
   <div id="admin-editing-banner" style="display:none;background:#cc0000;color:#fff;font-weight:800;letter-spacing:2px;font-size:0.8rem;text-align:center;padding:6px 10px;margin:-20px -20px 12px">ADMIN EDITING</div>
   <h1>⛳ KevGolf</h1>
   <p>Highest Net Score Wins</p>
+  <div id="build-label" style="font-size:0.6rem;color:rgba(255,255,255,0.45);margin-top:2px"></div>
   <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px">
     <button class="nav-arrow hidden" id="nav-back" onclick="navBack()">◀</button>
     <div class="step-indicator">
@@ -631,12 +632,15 @@ function setAdminMode(on){
 // ── Admin presence: show "ADMIN EDITING" when another device is in admin mode ──
 const PRESENCE_TTL_MS=30000,PRESENCE_BEAT_MS=10000;
 const DEVICE_ID=Math.random().toString(36).slice(2)+Date.now().toString(36);
+const BUILD_VERSION='2026-10-24 presence-v2';
+function setBuildLabel(extra){const el=document.getElementById('build-label');if(el)el.textContent='Version '+BUILD_VERSION+' · device '+DEVICE_ID.slice(0,4)+(extra||'');}
+document.addEventListener('DOMContentLoaded',()=>setBuildLabel(''));
 const presenceDoc=db.collection('kevgolf').doc('adminPresence');
 let _presenceTimer=null,_presenceData={};
 function updateAdminPresence(){
   clearInterval(_presenceTimer);_presenceTimer=null;
   if(isAdmin){
-    const beat=()=>presenceDoc.set({[DEVICE_ID]:Date.now()},{merge:true}).catch(()=>{});
+    const beat=()=>presenceDoc.set({[DEVICE_ID]:Date.now()},{merge:true}).then(()=>setBuildLabel('')).catch(e=>setBuildLabel(' · presence error: '+(e.code||e.message)));
     beat();_presenceTimer=setInterval(beat,PRESENCE_BEAT_MS);
   }else{
     presenceDoc.update({[DEVICE_ID]:firebase.firestore.FieldValue.delete()}).catch(()=>{});

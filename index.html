@@ -285,7 +285,7 @@
   <div id="group-summary" style="display:none;margin-top:16px"></div>
   <div style="margin-top:16px">
     <button class="btn btn-secondary" onclick="goBack(0)">← Change Selections</button>
-    <button class="btn btn-secondary" onclick="copyLineup()">📋 Current Player List</button>
+    <button class="btn btn-secondary" onclick="copyGroupings()">📋 Copy of Current Player Groupings</button>
   </div>
   <div style="margin-top:8px">
     <button class="btn btn-secondary" id="copy-email-btn-1" onclick="copyEmailList()" style="display:none">📧 Email Current Players</button>
@@ -1154,6 +1154,22 @@ function copyLineup(){
   const hcpOf=n=>workingHcps[n]!==undefined?workingHcps[n]:roster[n].hcp;
   const txt=players.map(n=>`${n.padEnd(24)} HCP ${hcpOf(n)}`).join('\n')+'\n';
   showCopyDialog(`Current Players (${players.length})`,txt,'Copy Player List');
+}
+
+function copyGroupings(){
+  // Same content as the Group Summary cards: each group's players with HCP, plus the average handicap.
+  const hcpOf=n=>workingHcps[n]!==undefined?workingHcps[n]:roster[n].hcp;
+  const blocks=[];
+  for(let g=1;g<=numGroups;g++){
+    const players=activePlayers.filter(n=>playerGroups[n]===g);
+    if(!players.length)continue;
+    const avg=(players.reduce((s,n)=>s+hcpOf(n),0)/players.length).toFixed(1);
+    blocks.push([`GROUP ${g}`,...players.map(n=>`${n} HCP ${hcpOf(n)}`),`Avg Handicap: ${avg}`].join('\n'));
+  }
+  const ungrouped=activePlayers.filter(n=>!playerGroups[n]);
+  if(ungrouped.length)blocks.push(['UNGROUPED',...ungrouped.map(n=>`${n} HCP ${hcpOf(n)}`)].join('\n'));
+  if(!blocks.length){toast('No groups assigned yet');return;}
+  showCopyDialog('Current Player Groupings',blocks.join('\n\n')+'\n','Copy Groupings');
 }
 
 // Copy-able text dialog: tries an automatic copy, but always shows the text so it can be copied manually

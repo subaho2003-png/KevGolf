@@ -1578,15 +1578,17 @@ function calcResults(){
   requireAdmin(()=>_calcResults());
 }
 function _calcResults(){
-  const scored=activePlayers.filter(n=>grossScores[n]!==undefined);
-  if(scored.length<2){toast('Enter at least 2 scores');return;}
+  // Score-entry boxes are pre-filled with each player's handicap (Net 0) but only stored once touched,
+  // so untouched players default to gross = handicap instead of being dropped from the results.
+  const scored=activePlayers.slice();
+  if(scored.length<2){toast('Need at least 2 players');return;}
   const count=activePlayers.length;
   const totalPot=count*15,ctpPot=count*5,placePot=totalPot-ctpPot;
   const ctpHoles=getCtpHoles();
   const perHoleCTP=ctpHoles.length>0?Math.floor(ctpPot/ctpHoles.length):0;
   const ctpWinnerCount=ctpHoles.filter(h=>ctpWinners[h]).length;
   const ctpPerWinner=ctpWinnerCount>0?Math.floor(ctpPot/ctpWinnerCount):0;
-  const nets={};scored.forEach(n=>{nets[n]=grossScores[n]-workingHcps[n];});
+  const nets={};scored.forEach(n=>{nets[n]=(grossScores[n]!==undefined?grossScores[n]:workingHcps[n])-workingHcps[n];});
   const sorted=Object.entries(nets).sort((a,b)=>b[1]-a[1]);
   const groups={};
   sorted.forEach(([n,net])=>{const k=net.toFixed(1);if(!groups[k])groups[k]=[];groups[k].push(n);});

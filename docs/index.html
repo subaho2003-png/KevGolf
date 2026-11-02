@@ -1169,7 +1169,13 @@ function copyGroupings(){
   const ungrouped=activePlayers.filter(n=>!playerGroups[n]);
   if(ungrouped.length)blocks.push(['UNGROUPED',...ungrouped.map(n=>`${n} HCP ${hcpOf(n)}`)].join('\n'));
   if(!blocks.length){toast('No groups assigned yet');return;}
-  showCopyDialog('Current Player Groupings',blocks.join('\n\n')+'\n','Copy Groupings');
+  // Header: day of week, date and weather (weather only when a forecast is loaded for the event date)
+  const dateLabel=getEventDateLabel();
+  const head=[[eventDay,dateLabel].filter(Boolean).join(', ')];
+  const wLine=weatherData&&weatherData._date===eventDate?getWeatherLine():'';
+  if(wLine)head.push(wLine);
+  const header=head.filter(Boolean).join('\n');
+  showCopyDialog('Current Player Groupings',(header?header+'\n\n':'')+blocks.join('\n\n')+'\n','Copy Groupings');
 }
 
 // Copy-able text dialog: tries an automatic copy, but always shows the text so it can be copied manually

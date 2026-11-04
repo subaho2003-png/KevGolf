@@ -1312,7 +1312,7 @@ function navForward(){
   if(currentScreen===0)goToReview();
   else if(currentScreen===1)goToScores();
   else if(currentScreen===2)goToCTP();
-  else if(currentScreen===3)calcResults();
+  else if(currentScreen===3)toast('Tap "Calculate Results" to see payouts');
 }
 
 function updateDots(cur){
@@ -1586,8 +1586,9 @@ function calcResults(){
 function _calcResults(){
   // Score-entry boxes are pre-filled with each player's handicap (Net 0) but only stored once touched,
   // so untouched players default to gross = handicap instead of being dropped from the results.
+  // Require real score entry first, so a fresh round with nothing entered can't produce payouts.
+  if(activePlayers.filter(n=>grossScores[n]!==undefined).length<2){toast('Enter at least 2 scores');return;}
   const scored=activePlayers.slice();
-  if(scored.length<2){toast('Need at least 2 players');return;}
   const count=activePlayers.length;
   const totalPot=count*15,ctpPot=count*5,placePot=totalPot-ctpPot;
   const ctpHoles=getCtpHoles();

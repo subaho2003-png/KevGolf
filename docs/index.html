@@ -1775,7 +1775,8 @@ function sendResults(){
     body+=`${String(i+1).padEnd(3)} ${name.padEnd(24)} HCP ${workingHcps[name]!==undefined?workingHcps[name]:roster[name].hcp}\n`;
   });
   body+='\n'+'='.repeat(36)+'\n';
-  const emails=Object.keys(roster).filter(n=>!roster[n].inactive&&roster[n].email).map(n=>roster[n].email);
+  // Only the players in today's round (not the whole active roster)
+  const emails=activePlayers.filter(n=>roster[n]&&roster[n].email).map(n=>roster[n].email);
   if(!emails.length){toast('No player emails on file');return;}
   const subject=`KevGolf Results — ${date}`;
   // Yahoo's compose link mangles line breaks in the body, so put the results on the clipboard

@@ -1209,6 +1209,13 @@ function showCopyDialog(title,text,btnLabel){
   doCopy();
 }
 
+// Yahoo Mail treats the compose body as HTML, so plain-text newlines collapse. Convert to HTML:
+// escape markup, keep column spacing with &nbsp;, and turn line breaks into <br>.
+function textToEmailHtml(text){
+  const esc=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return '<div style="font-family:Courier New,monospace">'+esc.replace(/ /g,'&nbsp;').replace(/\r?\n/g,'<br>')+'</div>';
+}
+
 function openYahooCompose(emails,subject,body){
   if(!emails.length){toast('No emails to send');return;}
   const isAndroid=/Android/i.test(navigator.userAgent);
@@ -1229,7 +1236,7 @@ function openYahooCompose(emails,subject,body){
   }
   // iOS: Yahoo Mail's ymail:// scheme accepts BCC via URL params
   const bcc=encodeURIComponent(emails.join(','));
-  const url='ymail://mail/compose?bcc='+bcc+(subject?'&subject='+encodeURIComponent(subject):'')+(body?'&body='+encodeURIComponent(body.replace(/\r?\n/g,'\r\n')):'')+'&_='+Date.now();
+  const url='ymail://mail/compose?bcc='+bcc+(subject?'&subject='+encodeURIComponent(subject):'')+(body?'&body='+encodeURIComponent(textToEmailHtml(body)):'')+'&_='+Date.now();
   launch(url);
   toast('Opening Yahoo Mail…');
 }

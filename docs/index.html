@@ -1229,7 +1229,7 @@ function openYahooCompose(emails,subject,body){
   }
   // iOS: Yahoo Mail's ymail:// scheme accepts BCC via URL params
   const bcc=encodeURIComponent(emails.join(','));
-  const url='ymail://mail/compose?bcc='+bcc+(subject?'&subject='+encodeURIComponent(subject):'')+(body?'&body='+encodeURIComponent(body):'')+'&_='+Date.now();
+  const url='ymail://mail/compose?bcc='+bcc+(subject?'&subject='+encodeURIComponent(subject):'')+(body?'&body='+encodeURIComponent(body.replace(/\r?\n/g,'\r\n')):'')+'&_='+Date.now();
   launch(url);
   toast('Opening Yahoo Mail…');
 }

@@ -1209,14 +1209,7 @@ function showCopyDialog(title,text,btnLabel){
   doCopy();
 }
 
-// Yahoo Mail treats the compose body as HTML, so plain-text newlines collapse. Convert to HTML:
-// escape markup, keep column spacing with &nbsp;, and turn line breaks into <br>.
-function textToEmailHtml(text){
-  const esc=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  return '<div style="font-family:Courier New,monospace">'+esc.replace(/ /g,'&nbsp;').replace(/\r?\n/g,'<br>')+'</div>';
-}
-
-function openYahooCompose(emails,subject,body){
+function openYahooCompose(emails,subject){
   if(!emails.length){toast('No emails to send');return;}
   const isAndroid=/Android/i.test(navigator.userAgent);
   const launch=(href)=>{
@@ -1236,7 +1229,7 @@ function openYahooCompose(emails,subject,body){
   }
   // iOS: Yahoo Mail's ymail:// scheme accepts BCC via URL params
   const bcc=encodeURIComponent(emails.join(','));
-  const url='ymail://mail/compose?bcc='+bcc+(subject?'&subject='+encodeURIComponent(subject):'')+(body?'&body='+encodeURIComponent(textToEmailHtml(body)):'')+'&_='+Date.now();
+  const url='ymail://mail/compose?bcc='+bcc+(subject?'&subject='+encodeURIComponent(subject):'')+'&_='+Date.now();
   launch(url);
   toast('Opening Yahoo Mail…');
 }
@@ -1785,7 +1778,19 @@ function sendResults(){
   const emails=Object.keys(roster).filter(n=>!roster[n].inactive&&roster[n].email).map(n=>roster[n].email);
   if(!emails.length){toast('No player emails on file');return;}
   const subject=`KevGolf Results — ${date}`;
-  openYahooCompose(emails,subject,body);
+  // Yahoo's compose link mangles line breaks in the body, so put the results on the clipboard
+  // (which keeps them intact) and let the user paste into the new message.
+  const isAndroid=/Android/i.test(navigator.userAgent);
+  if(isAndroid){openYahooCompose(emails,subject);return;}
+  const launch=()=>{openYahooCompose(emails,subject);toast('Results copied — paste them into the email body',4000);};
+  const legacyCopy=()=>{
+    const ta=document.createElement('textarea');ta.value=body;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);
+    if(ok)launch();else toast('Could not copy results — use Copy Results as Text');
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(body).then(launch).catch(legacyCopy);
+  else legacyCopy();
 }
 
 function newRound(){
@@ -1874,9 +1879,9 @@ function addNewPlayer(){
 }
 
 let toastTimer;
-function toast(msg){
+function toast(msg,ms){
   const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2500);
 }
 
 function showAdminWindow(){

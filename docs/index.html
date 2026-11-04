@@ -1506,6 +1506,7 @@ function changeCTP(delta){requireAdmin(()=>{ctpCount=Math.max(0,ctpCount+delta);
 function resetScoresIfNewDate(){
   if(!lastSavedDate||lastSavedDate===eventDate)return false;
   grossScores={};
+  ctpWinners={}; // closest-to-pin picks belong to the saved round too; a new outing starts with none
   activePlayers.forEach(n=>{if(roster[n])workingHcps[n]=roster[n].hcp;});
   lastSavedDate=eventDate; // mark this date handled so in-progress scores aren't wiped again
   if(isAdmin)saveSessionState();
